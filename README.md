@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hisaab Kavach
 
-## Getting Started
+**UPI is not income.** An AI bookkeeping and tax shield for Paytm merchants. It separates real sales from family money, loans, own transfers and refunds, so a GST notice never pushes a shopkeeper back to cash.
 
-First, run the development server:
+Paytm Build for India AI Hackathon, Bengaluru, 31 Oct 2026 · Track 1, Merchant Growth AI (with a Track 3 autonomous agent)
+Team: Sayantika Laskar, Harsh Shukla
+
+## Run
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # add free keys (optional)
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Key | Where to get it (free) | Powers | Without it |
+|---|---|---|---|
+| `GEMINI_API_KEY` | aistudio.google.com → Get API key | Reads uploaded notice photos, drafts reply letters, writes Kannada questions | Sample notice + template letter + template questions |
+| `GEMINI_MODEL` | optional | Override the model if one is rate-limited (default `gemini-3.6-flash`; `GEMINI_THINKING` = minimal|low|medium) | — |
+| `SARVAM_API_KEY` | dashboard.sarvam.ai (free credits) | Kannada voice (Bulbul v3) and spoken answers (Saaras v4) | Browser voice; tap to answer |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The app works fully offline with no keys, so the demo can't break on stage.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Product
 
-## Learn More
+| Route | What it is |
+|---|---|
+| `/` | Marketing site: 3D product preview, pinned scroll story, features, pricing, FAQ |
+| `/app` | Overview: KPIs, cumulative turnover vs ₹40L limit, compliance status, composition, activity |
+| `/app/transactions` | Data table: search, filter, export CSV, detail drawer with reason/signals/evidence, reclassify |
+| `/app/review` | Soundbox: Kavach asks uncertain credits in Kannada; one tap or one word to answer |
+| `/app/notices` | Notice shield: upload or sample → 5-step agent run → ₹7.71L demand → ₹0, waterfall, reply letter |
+| `/app/forecast` | When you cross ₹40L, a growth-scenario slider, and what to do first |
+| `/app/pulse` | Paytm view: an agent detects merchants drifting to cash and wins them back (simulated cohort) |
+| `/app/settings` | Language, voice test, connection status, reset demo |
+| `/notice-sample` | Printable sample notice (marked SAMPLE) to photograph on stage |
 
-To learn more about Next.js, take a look at the following resources:
+Shortcuts: `⌘K` search · FY switcher in the top bar.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 3-minute demo
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **`/` (30s):** scroll the hero and the "No UPI, only cash" problem section.
+2. **`/app` (30s):** ₹30.6L received, only ₹24.3L business, crossing ₹40L in Feb 2027. Press **Explain in Kannada**.
+3. **`/app/review` (30s):** press **Ask aloud** and answer two items. Turnover updates live.
+4. **`/app/notices` (60s, the wow moment):** photograph the printed sample notice and upload it → the agent runs → **₹7,71,150 → ₹0** → waterfall → reply letter → **Explain to Manjunath**.
+5. **`/app/pulse` (30s):** the autonomous agent log, with 71% of drifting merchants back on QR.
 
-## Deploy on Vercel
+## Code map
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `src/lib/data.ts`: deterministic synthetic UPI history (Apr 2025 → today)
+- `src/lib/classify.ts`: explainable classifier; low-confidence credits go to the merchant
+- `src/lib/gst.ts`: Section 22 threshold, composition 1%, sales mix from purchases, forecast
+- `src/lib/ai.ts`: Gemini (Interactions API, JSON schema output) + Sarvam REST, each with an offline fallback
+- `src/components/charts.tsx`: SVG charts (validated colour-blind-safe palette, hover tooltips)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+GST figures are simplified for a demo. Every draft is marked for CA review; nothing here is legal advice.
