@@ -2,6 +2,8 @@
 
 Customer intelligence for Paytm merchants, built from the UPI payments they already receive.
 
+**Live demo:** https://pehchaan-sigma.vercel.app · **Pitch deck (PDF):** [docs/Pehchaan-Pitch-Deck.pdf](docs/Pehchaan-Pitch-Deck.pdf)
+
 - **Recognise:** every Soundbox payment (payer name + UPI ID) becomes a customer profile.
 - **Predict:** a probabilistic churn model (BG/NBD + Gamma-Gamma) scores each customer's chance of still being a regular, their expected visits, and their 90-day value.
 - **Act:** a win-back agent picks who's worth an offer, writes to them in Kannada (Gemini), sends it through the Paytm app, and recognises them on the Soundbox when they return (Sarvam voice).
