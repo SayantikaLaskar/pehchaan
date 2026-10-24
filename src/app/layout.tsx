@@ -9,8 +9,8 @@ const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["ita
 const kn = Noto_Sans_Kannada({ subsets: ["kannada"], variable: "--font-kn" });
 
 export const metadata: Metadata = {
-  title: "Hisaab Kavach — Safe to accept UPI",
-  description: "AI bookkeeping and tax shield for Paytm merchants. Separates real sales from family money, loans and refunds.",
+  title: "Pehchaan — Never lose a regular",
+  description: "Customer intelligence for Paytm merchants: churn prediction from UPI payments, a Kannada win-back agent, and a neighbourhood radar.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,9 +1,12 @@
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
+import seed from "./ai-seed.json";
 
-// Gemini free tier (Google AI Studio key). Free-tier latency swings from seconds to minutes,
-// so every call is cached and raced against a timeout by the routes.
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+// Gemini free tier (Google AI Studio key). Daily quotas are small (as low as 20 requests per model)
+// and latency swings from seconds to minutes, so: one call per task, answers cached on disk,
+// a second model when the first is out of quota, and a timeout + template in every route.
+const MODELS = [...new Set([process.env.GEMINI_MODEL || "gemini-3.5-flash-lite", "gemini-3.6-flash"])];
 const THINKING = process.env.GEMINI_THINKING || "low";
 
 export const hasGemini = () => Boolean(process.env.GEMINI_API_KEY);
@@ -12,172 +15,117 @@ export const hasSarvam = () => Boolean(process.env.SARVAM_API_KEY);
 let client: GoogleGenAI | null = null;
 const gemini = () => (client ??= new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }));
 
-type Part = { type: "text"; text: string } | { type: "image"; data: string; mime_type: string };
-
-async function structured<T extends z.ZodType>(schema: T, system: string, input: Part[]): Promise<z.infer<T>> {
+async function structured<T extends z.ZodType>(schema: T, system: string, input: string): Promise<z.infer<T>> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { $schema, ...json } = z.toJSONSchema(schema);
-  const res = await gemini().interactions.create({
-    model: MODEL,
-    system_instruction: system,
-    input,
-    generation_config: { thinking_level: THINKING },
-    response_format: { type: "text", mime_type: "application/json", schema: json },
-  });
-  if (!res.output_text) throw new Error("empty response");
-  return schema.parse(JSON.parse(res.output_text));
+  let last: unknown;
+  for (const model of MODELS) {
+    try {
+      const res = await gemini().interactions.create({
+        model,
+        system_instruction: system,
+        input: [{ type: "text", text: input }],
+        generation_config: { thinking_level: THINKING },
+        response_format: { type: "text", mime_type: "application/json", schema: json },
+      });
+      if (!res.output_text) throw new Error("empty response");
+      return schema.parse(JSON.parse(res.output_text));
+    } catch (e) {
+      last = e;
+      if (!/429|rate limit|quota/i.test(String(e))) throw e;
+    }
+  }
+  throw last;
 }
 
-// A slow call keeps running after its timeout and fills the cache, so the next request is instant.
-const cache = new Map<string, Promise<unknown>>();
+const DISK = ".cache/ai.json";
+// Answers generated during development ship with the app, so demo paths cost no quota in production.
+let disk: Record<string, unknown> = { ...(seed as Record<string, unknown>) };
+try { disk = { ...disk, ...JSON.parse(readFileSync(DISK, "utf8")) }; } catch {}
+
+// In-flight calls are shared; finished answers go to disk so restarts and repeat demos cost no quota.
+const inflight = new Map<string, Promise<unknown>>();
 function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
-  if (!cache.has(key)) cache.set(key, fn().catch((e) => { cache.delete(key); throw e; }));
-  return cache.get(key) as Promise<T>;
+  if (key in disk) return Promise.resolve(disk[key] as T);
+  if (!inflight.has(key))
+    inflight.set(key, fn().then((v) => {
+      disk[key] = v;
+      try { mkdirSync(".cache", { recursive: true }); writeFileSync(DISK, JSON.stringify(disk, null, 1)); } catch {}
+      return v;
+    }).catch((e) => { inflight.delete(key); throw e; }));
+  return inflight.get(key) as Promise<T>;
 }
 
 export function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([p, new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`timed out after ${ms}ms`)), ms))]);
 }
 
-/* ───────────── Notice extraction ───────────── */
+/* ───────────── Win-back message ───────────── */
 
-export const NoticeSchema = z.object({
-  reference: z.string(),
-  issuedBy: z.string(),
-  dateIssued: z.string(),
-  replyBy: z.string(),
-  period: z.string(),
-  taxpayerName: z.string(),
-  turnoverAlleged: z.number(),
-  basis: z.string(),
-  tax: z.number(),
-  interest: z.number(),
-  penalty: z.number(),
-  total: z.number(),
-  language: z.string(),
-});
-export type Notice = z.infer<typeof NoticeSchema>;
+export const MessageSchema = z.object({ kn: z.string(), en: z.string() });
+export type Message = z.infer<typeof MessageSchema>;
 
-export const SAMPLE_NOTICE: Notice = {
-  reference: "ASMT-10/KA/DVO-14/2026/08817",
-  issuedBy: "Asst. Commissioner of Commercial Taxes, DVO-14, Bengaluru",
-  dateIssued: "12 Oct 2026",
-  replyBy: "11 Nov 2026",
-  period: "FY 2025–26",
-  taxpayerName: "Manjunath Gowda (Sri Manjunatha Vegetables & Provisions)",
-  turnoverAlleged: 53_00_000,
-  basis: "UPI receipts reported by payment aggregators exceed the registration threshold of ₹40,00,000; taxpayer is unregistered.",
-  tax: 6_36_000,
-  interest: 71_550,
-  penalty: 63_600,
-  total: 7_71_150,
-  language: "English + Kannada",
-};
+export interface WinbackInput {
+  name: string;
+  usual: string; // "every 3 days"
+  lastSeen: number; // days
+  favourite: string; // what they usually buy
+  offer: number; // ₹ off
+}
 
-export async function extractNotice(base64: string, mediaType: string): Promise<Notice> {
-  return structured(
-    NoticeSchema,
-    "You read Indian GST / commercial-tax notices (often bilingual Kannada–English, sometimes photographed at an angle). Extract the fields exactly. Amounts are integers in rupees. If a field is absent use an empty string or 0.",
-    [
-      { type: "image", data: base64, mime_type: mediaType },
-      { type: "text", text: "Extract this notice." },
-    ],
+const KN_ITEM: Record<string, string> = { "milk and vegetables": "ಹಾಲು ಮತ್ತು ತರಕಾರಿ", vegetables: "ತರಕಾರಿ", groceries: "ದಿನಸಿ", fruits: "ಹಣ್ಣು" };
+
+export function fallbackMessage({ name, lastSeen, favourite, offer }: WinbackInput): Message {
+  const first = name.split(" ")[0];
+  const item = KN_ITEM[favourite] ?? "ತರಕಾರಿ";
+  return {
+    kn: `ನಮಸ್ಕಾರ ${first} ಅವರೇ! ${lastSeen} ದಿನಗಳಿಂದ ನಿಮ್ಮನ್ನು ನೋಡಿಲ್ಲ. ಇವತ್ತು ತಾಜಾ ${item} ಬಂದಿದೆ — ನಿಮಗಾಗಿ ₹${offer} ರಿಯಾಯಿತಿ, ಈ ವಾರ ಮಾತ್ರ. — ಮಂಜುನಾಥ್, ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್`,
+    en: `Namaskara ${first}! We haven't seen you in ${lastSeen} days. Fresh ${favourite} arrived today — ₹${offer} off for you, this week only. — Manjunath, Sri Manjunatha Stores`,
+  };
+}
+
+const MessagesSchema = z.object({ messages: z.array(z.object({ id: z.string(), kn: z.string(), en: z.string() })) });
+
+/** One call writes the whole campaign. */
+export function winbackMessages(items: (WinbackInput & { id: string })[]): Promise<Record<string, Message>> {
+  return cached(`msgs:${JSON.stringify(items)}`, async () => {
+    const { messages } = await structured(
+      MessagesSchema,
+      "You write short, warm messages from a Bengaluru kirana owner (Manjunath, Sri Manjunatha Stores, HSR Layout) to regular customers who have stopped coming. Each is delivered as a Paytm app notification. Sound like a neighbour, not a brand: use their first name, mention what they usually buy, state the offer once. No emojis, no pressure, under 35 words each. Return one message per input id. kn: natural spoken Kannada in Kannada script. en: the same in English.",
+      JSON.stringify(items),
+    );
+    return Object.fromEntries(messages.map((m) => [m.id, { kn: m.kn, en: m.en }]));
+  });
+}
+
+/* ───────────── Morning brief ───────────── */
+
+export const BriefSchema = z.object({ kn: z.string(), en: z.string() });
+export type Brief = z.infer<typeof BriefSchema>;
+
+export interface BriefInput {
+  slipping: { name: string; lastSeen: number; usual: number }[];
+  expectedToday: number;
+  revenueAtRisk: number;
+  areaAlert: boolean;
+}
+
+export function fallbackBrief(b: BriefInput): Brief {
+  const names = b.slipping.slice(0, 3).map((s) => s.name.split(" ")[0]);
+  return {
+    kn: `ಶುಭೋದಯ ಮಂಜುನಾಥ್ ಅವರೇ. ಇವತ್ತು ಸುಮಾರು ${b.expectedToday} ಗ್ರಾಹಕರು ಬರುವ ನಿರೀಕ್ಷೆ. ${names.join(", ")} ಸ್ವಲ್ಪ ದಿನಗಳಿಂದ ಬಂದಿಲ್ಲ — ಅವರಿಗೆ ಆಫರ್ ಕಳುಹಿಸಲೇ?${b.areaAlert ? " ನಿಮ್ಮ ಏರಿಯಾದಲ್ಲಿ ಹೊಸ ಆನ್‌ಲೈನ್ ಡೆಲಿವರಿ ಸ್ಟೋರ್ ಶುರುವಾದಂತಿದೆ." : ""}`,
+    en: `Good morning Manjunath. About ${b.expectedToday} customers expected today. ${names.join(", ")} haven't come in a while — shall I send them an offer?${b.areaAlert ? " A new quick-commerce store seems to have opened in your area." : ""}`,
+  };
+}
+
+export function morningBrief(b: BriefInput): Promise<Brief> {
+  return cached(`brief:${JSON.stringify(b)}`, () =>
+    structured(
+      BriefSchema,
+      "You are Pehchaan, the assistant inside a Paytm Soundbox at a Bengaluru kirana. Write the owner's 20-second spoken morning brief: greet Manjunath, say how many customers to expect, name up to three regulars who have stopped coming (first names only) and offer to send them a win-back offer, and mention the area alert if true. Plain spoken Kannada in Kannada script for kn, under 55 words. en: the same in English.",
+      JSON.stringify(b),
+    ),
   );
-}
-
-/* ───────────── Reply drafting ───────────── */
-
-export const ReplySchema = z.object({
-  subject: z.string(),
-  body: z.string(),
-  grounds: z.array(z.object({ title: z.string(), detail: z.string() })),
-  merchantSummaryKn: z.string(),
-  merchantSummaryEn: z.string(),
-});
-export type Reply = z.infer<typeof ReplySchema>;
-
-export interface Recon {
-  gross: number;
-  business: number;
-  exempt: number;
-  taxable: number;
-  personal: number;
-  loan: number;
-  own: number;
-  refund: number;
-  threshold: number;
-  exemptShare: number;
-  purchaseCount: number;
-}
-
-const L = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
-
-export function fallbackReply(n: Notice, r: Recon): Reply {
-  const below = r.business < r.threshold;
-  return {
-    subject: `Reply to notice ${n.reference} — ${n.period}`,
-    body: [
-      `To\nThe ${n.issuedBy}`,
-      `Sir/Madam,`,
-      `With reference to the above notice proposing tax of ${L(n.total)} on alleged turnover of ${L(n.turnoverAlleged)} for ${n.period}, I respectfully submit that the figure represents total UPI credits into my account and not turnover from supply of goods.`,
-      `Of the ${L(r.gross)} received, ${L(r.personal + r.loan + r.own + r.refund)} are not consideration for any supply: family remittances (${L(r.personal)}), loan disbursals from regulated lenders (${L(r.loan)}), transfers of my own funds (${L(r.own)}) and refunds/reversals (${L(r.refund)}). Bank and lender statements are enclosed.`,
-      `My aggregate turnover for ${n.period} is therefore ${L(r.business)}, ${below ? "which is below" : "against"} the threshold of ${L(r.threshold)} under Section 22 of the KGST/CGST Act, 2017. ${below ? "I was accordingly not liable to register, and no tax is payable." : ""} Further, approximately ${Math.round(r.exemptShare * 100)}% of my sales are fresh vegetables and fruits, which are exempt (Notification 2/2017), as evidenced by ${r.purchaseCount} purchase payments to APMC traders.`,
-      `I request that the proceedings be dropped. I am willing to appear in person with all records.`,
-      `Yours faithfully,\n${n.taxpayerName}`,
-    ].join("\n\n"),
-    grounds: [
-      { title: "UPI credits ≠ turnover", detail: `${L(r.gross - r.business)} of the credits are family money, loans, own transfers and refunds.` },
-      { title: below ? "Below registration threshold" : "Turnover correctly stated", detail: `True aggregate turnover is ${L(r.business)} against the ${L(r.threshold)} limit.` },
-      { title: "Majority exempt supplies", detail: `About ${Math.round(r.exemptShare * 100)}% of sales are fresh produce, nil-rated under GST.` },
-    ],
-    merchantSummaryKn: below
-      ? `ಮಂಜುನಾಥ್ ಅವರೇ, ಚಿಂತೆ ಬೇಡ. ನೋಟಿಸ್‌ನಲ್ಲಿ ${L(r.gross)} ಎಲ್ಲವನ್ನೂ ವ್ಯಾಪಾರ ಅಂತ ಲೆಕ್ಕ ಹಾಕಿದ್ದಾರೆ. ಆದರೆ ಅದರಲ್ಲಿ ಕುಟುಂಬದ ಹಣ, ಸಾಲ ಮತ್ತು ನಿಮ್ಮದೇ ಹಣ ಇದೆ. ನಿಮ್ಮ ನಿಜವಾದ ವ್ಯಾಪಾರ ${L(r.business)} — ನಲವತ್ತು ಲಕ್ಷದ ಮಿತಿಗಿಂತ ಕಡಿಮೆ. ಉತ್ತರ ಸಿದ್ಧವಾಗಿದೆ. ಒಮ್ಮೆ CA ಅವರಿಗೆ ತೋರಿಸಿ ಕಳುಹಿಸಿ. QR ತೆಗೆಯಬೇಡಿ.`
-      : `ಮಂಜುನಾಥ್ ಅವರೇ, ನಿಮ್ಮ ನಿಜವಾದ ವ್ಯಾಪಾರ ${L(r.business)}. ನೋಂದಣಿ ಮಾಡಿ ಕಾಂಪೋಸಿಷನ್ ಯೋಜನೆಯಲ್ಲಿ ಕೇವಲ ಒಂದು ಶೇಕಡಾ ತೆರಿಗೆ. ಉತ್ತರ ಸಿದ್ಧವಾಗಿದೆ.`,
-    merchantSummaryEn: below
-      ? `Don't worry. The notice counted all ${L(r.gross)} as business, but it includes family money, loans and your own transfers. Your real business is ${L(r.business)} — below the ₹40 lakh limit. The reply is ready; show it to a CA once and send it. Don't remove your QR.`
-      : `Your real business is ${L(r.business)}. Register under the composition scheme and pay just 1%. The reply is ready.`,
-  };
-}
-
-export function draftReply(n: Notice, r: Recon): Promise<Reply> {
-  return cached(`reply:${JSON.stringify([n, r])}`, () => structured(
-    ReplySchema,
-    [
-      "You are a careful Indian GST practitioner drafting a reply on behalf of a small unregistered merchant in Karnataka.",
-      "Rules: Section 22 CGST/KGST Act — goods-only suppliers in Karnataka must register above ₹40 lakh aggregate turnover. Aggregate turnover includes exempt supplies but excludes non-supply receipts (loans, family transfers, own-fund transfers, refunds). Fresh vegetables and fruits are nil-rated (Notification 2/2017-Central Tax (Rate)).",
-      "Write the reply body as a formal letter in plain English, 5–7 short paragraphs, citing the reconciliation figures exactly (Indian digit grouping, ₹). Never invent documents beyond bank statements, lender statements and purchase payment records.",
-      "grounds: 3 crisp headings with one-line detail.",
-      "merchantSummaryKn: 3–4 short spoken sentences in simple Kannada addressed to Manjunath, reassuring, telling him the outcome and to keep accepting UPI. merchantSummaryEn: the same in English.",
-    ].join("\n"),
-    [{ type: "text", text: JSON.stringify({ notice: n, reconciliation: r }) }],
-  ));
-}
-
-/* ───────────── Merchant question ───────────── */
-
-export const QuestionSchema = z.object({
-  kn: z.string(),
-  en: z.string(),
-  why: z.string(),
-});
-export type Question = z.infer<typeof QuestionSchema>;
-
-export function fallbackQuestion(payer: string, amount: number, date: string): Question {
-  const name = payer.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
-  const amt = amount.toLocaleString("en-IN");
-  return {
-    kn: `${date} ರಂದು ${name} ಅವರಿಂದ ₹${amt} ಬಂದಿದೆ. ಇದು ಅಂಗಡಿ ವ್ಯಾಪಾರವೇ, ಅಥವಾ ಮನೆಯ / ಸ್ನೇಹಿತರ ಹಣವೇ?`,
-    en: `₹${amt} came from ${name} on ${date}. Was this a shop sale, or family / friend money?`,
-    why: "One answer keeps your turnover accurate for every future notice.",
-  };
-}
-
-export function askQuestion(payer: string, amount: number, date: string, note: string, reason: string): Promise<Question> {
-  return cached(`q:${payer}:${amount}:${date}`, () => structured(
-    QuestionSchema,
-    "You are Kavach, a friendly bookkeeping assistant on a Paytm Soundbox for a Bengaluru vegetable shop owner named Manjunath. Ask ONE short spoken question to decide whether a UPI credit is a business sale or personal money. kn: natural spoken Kannada (not formal), ≤ 25 words, mention payer first name and amount. en: same in English. why: ≤ 14 words on why it matters.",
-    [{ type: "text", text: JSON.stringify({ payer, amount, date, note, reason }) }],
-  ));
 }
 
 /* ───────────── Sarvam voice ───────────── */
@@ -192,27 +140,4 @@ export async function sarvamTTS(text: string, lang: string): Promise<string | nu
   if (!res.ok) throw new Error(`sarvam tts ${res.status}: ${await res.text()}`);
   const json = (await res.json()) as { audios: string[] };
   return json.audios?.[0] ?? null;
-}
-
-export async function sarvamSTT(file: Blob, lang: string): Promise<string> {
-  const form = new FormData();
-  form.append("file", file, "answer.webm");
-  form.append("model", "saaras:v4");
-  form.append("language_code", lang);
-  const res = await fetch("https://api.sarvam.ai/speech-to-text", {
-    method: "POST",
-    headers: { "api-subscription-key": process.env.SARVAM_API_KEY! },
-    body: form,
-  });
-  if (!res.ok) throw new Error(`sarvam stt ${res.status}: ${await res.text()}`);
-  const json = (await res.json()) as { transcript: string };
-  return json.transcript;
-}
-
-/** Map a spoken answer to a class without a model call — Kannada, Hindi, English keywords. */
-export function interpretAnswer(t: string): "sale" | "personal" | null {
-  const s = t.toLowerCase();
-  if (/(ವ್ಯಾಪಾರ|ಅಂಗಡಿ|ಆರ್ಡರ್|ಮಾರಾಟ|sale|order|business|shop|dhanda|dhandha|bikri|बिक्री|धंधा|दुकान)/.test(s)) return "sale";
-  if (/(ಮನೆ|ಕುಟುಂಬ|ಸ್ನೇಹಿತ|ಸಾಲ|ವಾಪಸ್|family|friend|personal|ghar|dost|wapas|घर|दोस्त|उधार|personal)/.test(s)) return "personal";
-  return null;
 }

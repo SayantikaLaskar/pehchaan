@@ -1,0 +1,55 @@
+.page { display: flex; flex-direction: column; gap: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.kpis > :global(.card) { padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; }
+.kL { font-size: 12.5px; font-weight: 500; color: var(--text-3); }
+.kpis b { font-size: 26px; font-weight: 500; letter-spacing: -0.04em; }
+.kpis small { font-size: 12.5px; color: var(--text-3); }
+.warn { color: var(--warn); }
+.good { color: var(--good); }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+.mapCard { overflow: hidden; }
+.mapWrap { position: relative; margin: 14px 18px 0; border-radius: 12px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--border); }
+.map { display: block; width: 100%; aspect-ratio: 1; }
+.street { stroke: #e3e1da; stroke-width: 9; }
+.main { stroke: #d6d3ca; stroke-width: 34; }
+.ring { fill: none; stroke: var(--border); stroke-width: 4; stroke-dasharray: 18 22; }
+.dotG { cursor: pointer; }
+.dot { stroke: var(--surface); stroke-width: 18; transition: fill .4s; }
+.pulse { fill: none; stroke-width: 10; opacity: .5; animation: pulse 1.8s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pulse { 0% { transform: scale(.6); opacity: .7; } 100% { transform: scale(1.6); opacity: 0; } }
+.selfRing { fill: none; stroke: var(--navy); stroke-width: 12; }
+.selfLabel { font-size: 88px; font-weight: 600; fill: var(--navy); }
+.zoneEdge { fill: none; stroke: var(--bad); stroke-width: 8; stroke-dasharray: 30 24; }
+.cross line { stroke: var(--bad); stroke-width: 10; }
+.zoneLabel { paint-order: stroke; stroke: var(--surface-2); stroke-width: 24px; font-size: 92px; font-weight: 600; fill: var(--bad); }
+.zoneSub { paint-order: stroke; stroke: var(--surface-2); stroke-width: 20px; font-size: 74px; fill: var(--text-2); }
+.truth { fill: var(--text); stroke: #fff; stroke-width: 12; }
+.truthLabel { font-size: 74px; font-weight: 500; fill: var(--text); }
+.errLine { stroke: var(--text); stroke-width: 8; stroke-dasharray: 16 14; }
+.tip { position: absolute; top: 12px; left: 12px; padding: 10px 12px; border-radius: 10px; background: var(--surface); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--border); display: flex; flex-direction: column; gap: 2px; font-size: 12.5px; min-width: 200px; }
+.tip b { font-size: 13px; }
+.tip span { display: flex; justify-content: space-between; gap: 12px; }
+.tip em { font-style: normal; }
+.scrub { display: flex; align-items: center; gap: 12px; padding: 14px 18px 4px; }
+.scrub input { flex: 1; accent-color: var(--navy); }
+.scrub :global(.mono) { font-size: 12.5px; min-width: 54px; text-align: right; }
+.scale { display: flex; align-items: center; gap: 10px; padding: 6px 18px 16px; font-size: 11.5px; color: var(--text-3); }
+.scale i { width: 140px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--border-strong), var(--warn), var(--bad)); }
+
+.side { display: flex; flex-direction: column; gap: 16px; }
+.list { list-style: none; padding: 8px 18px 14px; }
+.list li { display: grid; grid-template-columns: 10px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.list li:first-child { border-top: 0; }
+.list li > span:nth-child(2) { display: flex; flex-direction: column; }
+.list b { font-weight: 500; }
+.list small { font-size: 11.5px; color: var(--text-3); }
+.list :global(.mono) { color: var(--bad); font-size: 13px; }
+.sw { width: 10px; height: 10px; border-radius: 50%; }
+.how { padding: 10px 18px 16px 36px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: var(--text-2); line-height: 1.5; }
+.actions { display: flex; flex-direction: column; gap: 8px; padding: 12px 18px 4px; }
+.actions :global(.btn) { justify-content: flex-start; }
+.valid { padding: 10px 18px 16px; font-size: 12.5px; color: var(--text-3); line-height: 1.55; }
+.valid b { color: var(--text); }
+
+@media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } .kpis { grid-template-columns: 1fr 1fr; } }

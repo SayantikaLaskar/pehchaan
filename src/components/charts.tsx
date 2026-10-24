@@ -44,12 +44,15 @@ export function Sparkline({ values, color = "var(--c-sale)", height = 36 }: { va
 
 export interface CumPoint { label: string; actual: number | null; projected: number | null }
 
-export function CumulativeChart({ points, threshold, height = 280, fmt, limitLabel = "Registration limit" }: { points: CumPoint[]; threshold: number; height?: number; fmt: (n: number) => string; limitLabel?: string }) {
+export function CumulativeChart({ points, threshold, height = 280, fmt, limitLabel = "Registration limit", names = { actual: "Actual", projected: "Projected" }, marker }: {
+  points: CumPoint[]; threshold?: number; height?: number; fmt: (n: number) => string; limitLabel?: string;
+  names?: { actual: string; projected: string }; marker?: { index: number; label: string };
+}) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);
   const pad = { l: 52, r: 16, t: 16, b: 28 };
   const iw = Math.max(0, w - pad.l - pad.r), ih = height - pad.t - pad.b;
-  const max = niceMax(Math.max(threshold * 1.15, ...points.map((p) => Math.max(p.actual ?? 0, p.projected ?? 0))) * 1.02);
+  const max = niceMax(Math.max((threshold ?? 0) * 1.15, ...points.map((p) => Math.max(p.actual ?? 0, p.projected ?? 0))) * 1.02);
   const x = (i: number) => pad.l + (i / (points.length - 1)) * iw;
   const y = (v: number) => pad.t + ih - (v / max) * ih;
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((k) => k * max);
@@ -87,16 +90,27 @@ export function CumulativeChart({ points, threshold, height = 280, fmt, limitLab
               <text x={pad.l - 10} y={y(t)} className={s.tick} textAnchor="end" dominantBaseline="middle">{axis(fmt(t))}</text>
             </g>
           ))}
-          {points.map((p, i) => (
-            <text key={i} x={x(i)} y={height - 8} className={s.tick} textAnchor="middle">{p.label}</text>
-          ))}
+          {points.map((p, i) => {
+            const every = Math.max(1, Math.ceil(52 / Math.max(1, iw / points.length)));
+            return i % every === 0 || i === points.length - 1 ? <text key={i} x={x(i)} y={height - 8} className={s.tick} textAnchor="middle">{p.label}</text> : null;
+          })}
           <path d={area} fill="var(--c-sale)" fillOpacity={0.1} data-fade />
           {proj.length > 1 && <path d={line(proj)} fill="none" stroke="var(--c-sale)" strokeWidth={2} strokeDasharray="5 5" data-dash="5 5" data-draw opacity={0.7} />}
           <path d={line(actual)} fill="none" stroke="var(--c-sale)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" data-draw />
-          <line x1={pad.l} x2={w - pad.r} y1={y(threshold)} y2={y(threshold)} className={s.limit} />
-          <g transform={`translate(${pad.l + 8},${y(threshold) - 8})`}>
-            <text className={s.limitLabel}>{limitLabel} · {axis(fmt(threshold))}</text>
-          </g>
+          {threshold != null && (
+            <>
+              <line x1={pad.l} x2={w - pad.r} y1={y(threshold)} y2={y(threshold)} className={s.limit} />
+              <g transform={`translate(${pad.l + 8},${y(threshold) - 8})`}>
+                <text className={s.limitLabel}>{limitLabel} · {axis(fmt(threshold))}</text>
+              </g>
+            </>
+          )}
+          {marker && (
+            <g>
+              <line x1={x(marker.index)} x2={x(marker.index)} y1={pad.t} y2={pad.t + ih} className={s.marker} />
+              <text x={x(marker.index) + 6} y={pad.t + 10} className={s.markerLabel}>{marker.label}</text>
+            </g>
+          )}
           {actual.length > 0 && <circle cx={actual[lastActual][0]} cy={actual[lastActual][1]} r={5} fill="var(--c-sale)" stroke="var(--surface)" strokeWidth={2} />}
           {hover != null && (
             <g>
@@ -110,9 +124,9 @@ export function CumulativeChart({ points, threshold, height = 280, fmt, limitLab
       {hp && (
         <div className={s.tip} style={{ left: Math.min(x(hover!) + 12, w - 170), top: 12 }}>
           <b>{hp.label}</b>
-          {hp.actual != null && <span><i style={{ background: "var(--c-sale)" }} />Actual <em className="mono">{fmt(hp.actual)}</em></span>}
-          {hp.projected != null && hp.actual == null && <span><i className={s.dashKey} />Projected <em className="mono">{fmt(hp.projected)}</em></span>}
-          <span className="t3">{limitLabel} <em className="mono">{fmt(threshold)}</em></span>
+          {hp.actual != null && <span><i style={{ background: "var(--c-sale)" }} />{names.actual} <em className="mono">{fmt(hp.actual)}</em></span>}
+          {hp.projected != null && <span><i className={s.dashKey} />{names.projected} <em className="mono">{fmt(hp.projected)}</em></span>}
+          {threshold != null && <span className="t3">{limitLabel} <em className="mono">{fmt(threshold)}</em></span>}
         </div>
       )}
     </div>
@@ -218,6 +232,100 @@ export function Composition({ parts, fmt }: { parts: { key: string; label: strin
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/* ───────────── Grouped bars (predicted vs actual) ───────────── */
+
+export function GroupedBars({ groups, names, height = 260, fmt }: { groups: { label: string; a: number; b: number }[]; names: [string, string]; height?: number; fmt: (n: number) => string }) {
+  const [ref, w] = useWidth<HTMLDivElement>();
+  const [hover, setHover] = useState<number | null>(null);
+  const pad = { l: 40, r: 8, t: 10, b: 28 };
+  const iw = Math.max(0, w - pad.l - pad.r), ih = height - pad.t - pad.b;
+  const max = niceMax(Math.max(...groups.flatMap((g) => [g.a, g.b])) * 1.05);
+  const slot = iw / groups.length, bw = Math.min(22, slot * 0.3);
+  const y = (v: number) => (v / max) * ih;
+  return (
+    <div ref={ref} className={s.wrap} style={{ height }} onMouseLeave={() => setHover(null)}>
+      {w > 0 && (
+        <svg width={w} height={height} className={s.svg}>
+          {[0, 0.5, 1].map((k) => (
+            <g key={k}>
+              <line x1={pad.l} x2={w - pad.r} y1={pad.t + ih - k * ih} y2={pad.t + ih - k * ih} className={s.grid} />
+              <text x={pad.l - 8} y={pad.t + ih - k * ih} className={s.tick} textAnchor="end" dominantBaseline="middle">{axis(fmt(k * max))}</text>
+            </g>
+          ))}
+          {groups.map((g, i) => {
+            const cx = pad.l + slot * i + slot / 2, base = pad.t + ih;
+            return (
+              <g key={g.label} onMouseEnter={() => setHover(i)} style={{ opacity: hover == null || hover === i ? 1 : 0.45, transition: "opacity .2s" }}>
+                <rect x={cx - slot / 2} y={pad.t} width={slot} height={ih} fill="transparent" />
+                <path className={s.grow} style={{ animationDelay: `${i * 60}ms` }} d={col(cx - bw - 1, base - y(g.a), bw, y(g.a), 4)} fill="var(--border-strong)" />
+                <path className={s.grow} style={{ animationDelay: `${i * 60 + 30}ms` }} d={col(cx + 1, base - y(g.b), bw, y(g.b), 4)} fill="var(--c-sale)" />
+                <text x={cx} y={height - 8} className={s.tick} textAnchor="middle">{g.label}</text>
+              </g>
+            );
+          })}
+        </svg>
+      )}
+      {hover != null && (
+        <div className={s.tip} style={{ left: Math.min(pad.l + slot * hover + slot / 2 + 14, w - 180), top: 8 }}>
+          <b>{groups[hover].label}</b>
+          <span><i style={{ background: "var(--border-strong)" }} />{names[0]} <em className="mono">{fmt(groups[hover].a)}</em></span>
+          <span><i style={{ background: "var(--c-sale)" }} />{names[1]} <em className="mono">{fmt(groups[hover].b)}</em></span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ───────────── P(alive) decay with visit ticks ───────────── */
+
+export function DecayChart({ points, height = 180 }: { points: { t: number; p: number; visit: boolean }[]; height?: number }) {
+  const [ref, w] = useWidth<HTMLDivElement>();
+  const [hover, setHover] = useState<number | null>(null);
+  const pad = { l: 36, r: 8, t: 10, b: 30 };
+  const iw = Math.max(0, w - pad.l - pad.r), ih = height - pad.t - pad.b;
+  const x = (i: number) => pad.l + (i / Math.max(1, points.length - 1)) * iw;
+  const y = (p: number) => pad.t + ih - p * ih;
+  const d = points.map((p, i) => `${i ? "L" : "M"}${x(i)},${y(p.p)}`).join(" ");
+  const scope = useRef<SVGSVGElement>(null);
+  useGSAP(() => {
+    const path = scope.current?.querySelector<SVGPathElement>("[data-draw]");
+    if (!path) return;
+    const len = path.getTotalLength();
+    gsap.fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut" });
+  }, { dependencies: [w, points.length, points[0]?.p], scope });
+  const hp = hover != null ? points[hover] : null;
+  return (
+    <div ref={ref} className={s.wrap} style={{ height }} onMouseLeave={() => setHover(null)}>
+      {w > 0 && (
+        <svg ref={scope} width={w} height={height} className={s.svg}
+          onMouseMove={(e) => {
+            const r = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
+            setHover(Math.max(0, Math.min(points.length - 1, Math.round(((e.clientX - r.left - pad.l) / iw) * (points.length - 1)))));
+          }}>
+          {[0, 0.5, 1].map((k) => (
+            <g key={k}>
+              <line x1={pad.l} x2={w - pad.r} y1={y(k)} y2={y(k)} className={s.grid} />
+              <text x={pad.l - 8} y={y(k)} className={s.tick} textAnchor="end" dominantBaseline="middle">{Math.round(k * 100)}%</text>
+            </g>
+          ))}
+          <path d={`${d} L${x(points.length - 1)},${y(0)} L${x(0)},${y(0)} Z`} fill="var(--c-sale)" fillOpacity={0.08} />
+          <path d={d} data-draw fill="none" stroke="var(--c-sale)" strokeWidth={2} strokeLinejoin="round" />
+          {points.map((p, i) => p.visit && <line key={i} x1={x(i)} x2={x(i)} y1={pad.t + ih + 6} y2={pad.t + ih + 14} stroke="var(--text-2)" strokeWidth={1.5} />)}
+          <text x={pad.l} y={height - 2} className={s.tick}>visits</text>
+          {hp && <circle cx={x(hover!)} cy={y(hp.p)} r={4.5} fill="var(--c-sale)" stroke="var(--surface)" strokeWidth={2} />}
+        </svg>
+      )}
+      {hp && (
+        <div className={s.tip} style={{ left: Math.min(x(hover!) + 12, w - 170), top: 6 }}>
+          <b>{new Date(hp.t).toISOString().slice(0, 10)}</b>
+          <span>Still a regular <em className="mono">{Math.round(hp.p * 100)}%</em></span>
+          {hp.visit && <span className="t3">Visited this day</span>}
+        </div>
+      )}
     </div>
   );
 }

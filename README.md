@@ -1,6 +1,11 @@
-# Hisaab Kavach
+# Pehchaan — never lose a regular
 
-**UPI is not income.** An AI bookkeeping and tax shield for Paytm merchants. It separates real sales from family money, loans, own transfers and refunds, so a GST notice never pushes a shopkeeper back to cash.
+Customer intelligence for Paytm merchants, built from the UPI payments they already receive.
+
+- **Recognise:** every Soundbox payment (payer name + UPI ID) becomes a customer profile.
+- **Predict:** a probabilistic churn model (BG/NBD + Gamma-Gamma) scores each customer's chance of still being a regular, their expected visits, and their 90-day value.
+- **Act:** a win-back agent picks who's worth an offer, writes to them in Kannada (Gemini), sends it through the Paytm app, and recognises them on the Soundbox when they return (Sarvam voice).
+- **See the city (Paytm view):** when regulars leave many shops in the same week, the network triangulates the cause, e.g. a new quick-commerce dark store.
 
 Paytm Build for India AI Hackathon, Bengaluru, 31 Oct 2026 · Track 1, Merchant Growth AI (with a Track 3 autonomous agent)
 Team: Sayantika Laskar, Harsh Shukla
@@ -9,48 +14,61 @@ Team: Sayantika Laskar, Harsh Shukla
 
 ```bash
 npm install
-cp .env.example .env.local   # add free keys (optional)
-npm run dev                  # http://localhost:3000
+cp .env.example .env    # add free keys (optional)
+npm run dev             # http://localhost:3000
+npm run model:check     # fit the models and print the backtest
+npm run sarvam:check    # one Kannada TTS → STT round trip
 ```
 
-| Key | Where to get it (free) | Powers | Without it |
+| Key | Get it free | Used for | Without it |
 |---|---|---|---|
-| `GEMINI_API_KEY` | aistudio.google.com → Get API key | Reads uploaded notice photos, drafts reply letters, writes Kannada questions | Sample notice + template letter + template questions |
-| `GEMINI_MODEL` | optional | Override the model if one is rate-limited (default `gemini-3.6-flash`; `GEMINI_THINKING` = minimal|low|medium) | — |
-| `SARVAM_API_KEY` | dashboard.sarvam.ai (free credits) | Kannada voice (Bulbul v3) and spoken answers (Saaras v4) | Browser voice; tap to answer |
+| `GEMINI_API_KEY` | aistudio.google.com | Writes win-back messages and the morning brief | Kannada templates |
+| `GEMINI_MODEL` / `GEMINI_THINKING` | optional | Default `gemini-3.5-flash-lite` (falls back to `gemini-3.6-flash` on quota), thinking `low` | — |
+| `SARVAM_API_KEY` | dashboard.sarvam.ai | Kannada voice on the Soundbox (Bulbul v3) | Browser voice |
 
-The app works fully offline with no keys, so the demo can't break on stage.
+Every Gemini call is cached and raced against a timeout, falling back to a template, so the demo never stalls on the free tier.
 
-## Product
+## Proof, not vibes (`npm run model:check`)
 
-| Route | What it is |
+All numbers come from a deterministic simulation of one HSR Layout kirana: 420 customers, 14k payments, Nov 2025 → Oct 2026, with a dark store opening on 18 Aug.
+
+| Check | Result |
 |---|---|
-| `/` | Marketing site: 3D product preview, pinned scroll story, features, pricing, FAQ |
-| `/app` | Overview: KPIs, cumulative turnover vs ₹40L limit, compliance status, composition, activity |
-| `/app/transactions` | Data table: search, filter, export CSV, detail drawer with reason/signals/evidence, reclassify |
-| `/app/review` | Soundbox: Kavach asks uncertain credits in Kannada; one tap or one word to answer |
-| `/app/notices` | Notice shield: upload or sample → 5-step agent run → ₹7.71L demand → ₹0, waterfall, reply letter |
-| `/app/forecast` | When you cross ₹40L, a growth-scenario slider, and what to do first |
-| `/app/pulse` | Paytm view: an agent detects merchants drifting to cash and wins them back (simulated cohort) |
-| `/app/settings` | Language, voice test, connection status, reset demo |
-| `/notice-sample` | Printable sample notice (marked SAMPLE) to photograph on stage |
+| Backtest: train to 1 Jun, predict 1 Jun–15 Aug | 2,891 predicted vs 2,899 actual visits (−0.3%) |
+| Per-customer correlation | 0.92 |
+| Top 10% of customers by model | made 41% of holdout visits |
+| Visits vs expectation after the opening | −47% within 500 m · −19% at 0.5–1 km · ~0% beyond 1 km |
+| Network radar | 7 of 36 shops flagged; change point in the week of 17 Aug; source located within ~360 m |
 
-Shortcuts: `⌘K` search · FY switcher in the top bar.
+The LLM never decides who or how much. It only writes the words.
+
+## Screens
+
+| Route | What it shows |
+|---|---|
+| `/` | Landing: 3D product preview, pinned scroll story, proof, business model, FAQ |
+| `/app` | Today: KPIs, visits vs model expectation, Kannada morning brief, slipping-away list, counter recognition |
+| `/app/customers` | Every customer, with segment, probability of still being a regular, and value; drawer with the decay curve and household |
+| `/app/winback` | The agent: plan → Kannada messages → send → simulated returns and ₹ recovered |
+| `/app/model` | Backtest chart, fitted parameters, a worked example, and where the LLM is (and isn't) used |
+| `/app/radar` | Paytm view: map with a week-by-week scrubber, inferred dark store, and a ground-truth reveal |
 
 ## 3-minute demo
 
-1. **`/` (30s):** scroll the hero and the "No UPI, only cash" problem section.
-2. **`/app` (30s):** ₹30.6L received, only ₹24.3L business, crossing ₹40L in Feb 2027. Press **Explain in Kannada**.
-3. **`/app/review` (30s):** press **Ask aloud** and answer two items. Turnover updates live.
-4. **`/app/notices` (60s, the wow moment):** photograph the printed sample notice and upload it → the agent runs → **₹7,71,150 → ₹0** → waterfall → reply letter → **Explain to Manjunath**.
-5. **`/app/pulse` (30s):** the autonomous agent log, with 71% of drifting merchants back on QR.
+1. **`/` (30s):** "Quick commerce is taking the kirana's best customers, and the shopkeeper can't see who's leaving."
+2. **`/app` (40s):** visits fall below the model's expectation from mid-August. Press **Play on Soundbox** to hear the morning brief in Kannada.
+3. **`/app/customers` (30s):** open a slipping customer; their probability of still being a regular decays from 80% to 31%.
+4. **`/app/winback` (40s):** **Run agent**, then **Hear it**, then **Simulate the next 7 days** to show who came back and the ₹ recovered. Back on Today, **Simulate payment**: "Aisha is back after 48 days."
+5. **`/app/radar` (40s, the wow moment):** press play; the dots turn red week by week, the inferred store appears, then **Reveal ground truth**: about 360 m off.
+
+Open `/app` and `/app/winback` about 30 seconds before presenting so Gemini's answers are cached.
 
 ## Code map
 
-- `src/lib/data.ts`: deterministic synthetic UPI history (Apr 2025 → today)
-- `src/lib/classify.ts`: explainable classifier; low-confidence credits go to the merchant
-- `src/lib/gst.ts`: Section 22 threshold, composition 1%, sales mix from purchases, forecast
-- `src/lib/ai.ts`: Gemini (Interactions API, JSON schema output) + Sarvam REST, each with an offline fallback
-- `src/components/charts.tsx`: SVG charts (validated colour-blind-safe palette, hover tooltips)
+- `src/lib/pehchaan/sim.ts`: deterministic customer and payment simulation, including the dark-store shock
+- `src/lib/pehchaan/btyd.ts`: BG/NBD and Gamma-Gamma (maximum-likelihood fit with Nelder–Mead), P(alive), expected visits
+- `src/lib/pehchaan/model.ts`: scoring, segments, win-back priority, backtest, shock analysis
+- `src/lib/pehchaan/network.ts`: multi-merchant baselines, CUSUM change points, spatial triangulation
+- `src/lib/ai.ts`: Gemini (Interactions API, JSON schema) + Sarvam TTS, with cache, timeout and templates
 
-GST figures are simplified for a demo. Every draft is marked for CA review; nothing here is legal advice.
+The data is simulated for the demo; the models are real and run unchanged on real Paytm payment histories.

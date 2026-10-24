@@ -5,55 +5,48 @@ import { useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import {
-  ArrowRight, BadgeIndianRupee, Check, ChevronDown, FileSearch, FileText, Languages, LineChart, Mic, QrCode, Radar, ShieldCheck, Sparkles, Volume2,
-} from "lucide-react";
+import { ArrowRight, BellRing, BrainCircuit, Check, ChevronDown, Fingerprint, LineChart, Radar, Send, Volume2 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Composition, CumulativeChart } from "@/components/charts";
-import { FY_PREV, getData } from "@/lib/data";
-import { CLS_META, THRESHOLD, forecast, inr, summarize } from "@/lib/gst";
+import { SEGMENTS, type Segment } from "@/lib/pehchaan/model";
+import { L, gapText, usePehchaan } from "@/lib/pehchaan/use";
+import { HeroFx, RotatingWord } from "./HeroFx";
+import { Recognition } from "./Recognition";
 import s from "./landing.module.css";
 
 gsap.registerPlugin(ScrollTrigger);
-const L = (n: number) => inr(n, { compact: true });
-
-const TICKER = [
-  ["QR collections · 72 payments", 14950, "sale"], ["RAVI GOWDA · inward remit", 40000, "personal"], ["MUTHOOT FINANCE · gold loan", 300000, "loan"],
-  ["PAYTM REFUND · reversal", 1419, "refund"], ["MANJUNATH GOWDA · self", 70000, "own"], ["GREEN BOWL CAFE · weekly veg", 36000, "sale"],
-  ["SRI VINAYAKA CHITS · prize", 125000, "own"], ["KAVYA GOWDA · for house", 35000, "personal"], ["BAJAJ FINANCE · PL disbursal", 200000, "loan"],
-  ["QR collections · 58 payments", 12198, "sale"],
-] as const;
 
 const STORY = [
-  { k: "Listen", icon: QrCode, title: "Every credit, the moment it lands.", body: "Kavach reads the Paytm QR stream and the bank account together — not just counter sales, but every remittance, loan and refund." },
-  { k: "Sort", icon: Sparkles, title: "Sales vs everything that isn't.", body: "Lender disbursals, family transfers, self-transfers, chit payouts and reversals are separated — each with a reason an officer will accept." },
-  { k: "Ask", icon: Volume2, title: "Unsure? It asks — in Kannada.", body: "Low-confidence credits become one spoken question on the Soundbox. One word or one tap to answer. Nothing is guessed." },
-  { k: "Shield", icon: ShieldCheck, title: "A notice becomes a one-page reply.", body: "Photograph the notice. Kavach reconciles it against the sorted ledger and drafts the reply your CA can sign in minutes." },
+  { k: "Recognise", icon: Fingerprint, title: "Every UPI payment becomes a customer.", body: "The payer name and UPI ID on each Soundbox payment build a profile automatically: how often they come, what they spend, who shares a household." },
+  { k: "Predict", icon: BrainCircuit, title: "Know who's quietly leaving.", body: "A probabilistic churn model (BG/NBD) estimates, for every customer, the chance they're still a regular — and flags the moment that chance falls." },
+  { k: "Act", icon: Send, title: "An agent that wins them back.", body: "Each week it picks who's worth an offer, writes to them in Kannada through the Paytm app, and recognises them on the Soundbox when they return." },
+  { k: "See the city", icon: Radar, title: "Paytm sees what no shop can.", body: "When regulars leave many shops in the same week, Paytm triangulates the cause — like a new quick-commerce dark store — and warns every merchant nearby." },
 ];
 
 const FAQ = [
-  ["Is this a way to avoid tax?", "No. Kavach makes merchants correctly compliant. It separates income from non-income, warns before a registration threshold is crossed, and estimates the tax due. Every reply is a draft for a CA to review."],
-  ["Why would a merchant stop accepting UPI?", "Because state tax offices issued notices using total UPI credits as turnover. A brother's remittance and a gold loan looked like sales. Many traders put up “No UPI, only cash” boards. Kavach removes that fear."],
-  ["Which languages does it speak?", "Kannada first, with Hindi and English. Voice runs on Sarvam AI's Indic speech models, so it works on the Soundbox a merchant already has."],
-  ["What happens when a merchant does cross ₹40 lakh?", "Kavach flags it months ahead, recommends the composition scheme (1% on taxable sales for traders), and keeps the evidence ready for registration."],
-  ["Where does the data come from?", "Paytm QR settlements and the merchant's linked bank statement. Sales mix is inferred from supplier payments — APMC traders vs FMCG distributors."],
+  ["Is this just an LLM wrapper?", "No. Every number comes from statistical models fitted to payment history — BG/NBD for churn and Gamma-Gamma for spend — backtested on months the model never saw. The LLM only writes the Kannada message; it never decides who or how much."],
+  ["Where does the customer data come from?", "From payments the merchant already receives: the payer name and UPI ID that appear on every Paytm for Business statement. No new app, no data entry, no loyalty card."],
+  ["What about privacy?", "Merchants never see phone numbers. Offers are delivered as Paytm app notifications under Paytm's consent settings, and customers can opt out. Network insights are aggregated across shops."],
+  ["What about customers who pay cash?", "Pehchaan only sees UPI regulars — today the majority of a city kirana's repeat customers, and growing every month. Cash customers simply aren't scored."],
+  ["Why is Paytm the one to build this?", "Three things in one place: the Soundbox at the counter to recognise people, the consumer app to deliver offers, and payment data across ~1.5 crore subscription merchants to see neighbourhood-level shifts."],
 ];
 
 export default function Landing() {
   const root = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(0);
   const [faq, setFaq] = useState<number | null>(0);
+  const { scored, winnable, shock, backtest, net } = usePehchaan();
 
-  const { sum, cum } = useMemo(() => {
-    const { txns, purchases } = getData();
-    const sum = summarize(txns, purchases, FY_PREV, {});
-    const fc = forecast(txns, {});
-    const cum = fc.series.map((m) => ({ label: m.label, actual: m.isFuture ? null : m.cumulative, projected: m.isFuture || m.isNow ? m.cumulative : null }));
-    return { sum, cum };
-  }, []);
+  const stats = useMemo(() => {
+    const active = scored.filter((x) => x.segment === "champion" || x.segment === "loyal").length;
+    const atRisk = winnable.reduce((a, x) => a + x.monthly, 0);
+    const parts = (Object.keys(SEGMENTS) as Segment[]).map((k) => ({ key: k, label: SEGMENTS[k].label, value: scored.filter((x) => x.segment === k).length, color: SEGMENTS[k].color }));
+    const weekly = shock.weekly.slice(-16).map((w) => ({ label: w.label, actual: w.actual, projected: w.expected }));
+    return { active, atRisk, parts, weekly };
+  }, [scored, winnable, shock]);
+  const top = winnable[0];
 
   useGSAP(() => {
-    // Hero
     const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
     tl.from(`.${s.pill}`, { y: 12, autoAlpha: 0, duration: 0.8 })
       .from(`.${s.h1} .${s.word}`, { yPercent: 110, duration: 1.2, stagger: 0.06 }, 0.1)
@@ -67,16 +60,14 @@ export default function Landing() {
       gsap.to(el, { yPercent: -60 - i * 25, ease: "none", scrollTrigger: { trigger: `.${s.stageHero}`, start: "top bottom", end: "bottom top", scrub: true } });
     });
 
-    // Problem
     gsap.from(`.${s.sign}`, { rotate: -14, y: 80, autoAlpha: 0, duration: 1.4, ease: "expo.out", scrollTrigger: { trigger: `.${s.problem}`, start: "top 70%" } });
     const big = { v: 0 };
     ScrollTrigger.create({
       trigger: `.${s.problem}`, start: "top 65%", once: true,
-      onEnter: () => gsap.to(big, { v: 65.45, duration: 2, ease: "expo.out", onUpdate: () => { const el = root.current?.querySelector(`.${s.bigNum} [data-num]`); if (el) el.textContent = `₹${big.v.toFixed(2)}`; } }),
+      onEnter: () => gsap.to(big, { v: 51, duration: 2, ease: "expo.out", onUpdate: () => { const el = root.current?.querySelector(`.${s.bigNum} [data-num]`); if (el) el.textContent = `${Math.round(big.v)}%`; } }),
     });
     gsap.from(`.${s.pRow}`, { y: 30, autoAlpha: 0, duration: 1, stagger: 0.12, ease: "expo.out", scrollTrigger: { trigger: `.${s.pRows}`, start: "top 80%" } });
 
-    // Pinned story
     const mm = gsap.matchMedia();
     mm.add("(min-width: 961px)", () => {
       ScrollTrigger.create({
@@ -86,14 +77,11 @@ export default function Landing() {
       gsap.fromTo(`.${s.progressFill}`, { scaleY: 0 }, { scaleY: 1, ease: "none", scrollTrigger: { trigger: `.${s.story}`, start: "top top", end: `+=${STORY.length * 70}%`, scrub: true } });
     });
 
-    // Generic reveals
     gsap.utils.toArray<HTMLElement>(`.${s.reveal}`).forEach((el) =>
       gsap.from(el, { y: 40, autoAlpha: 0, duration: 1.1, ease: "expo.out", scrollTrigger: { trigger: el, start: "top 85%" } }),
     );
     gsap.from(`.${s.tile}`, { y: 50, autoAlpha: 0, duration: 1, stagger: 0.08, ease: "expo.out", scrollTrigger: { trigger: `.${s.bento}`, start: "top 80%" } });
     gsap.from(`.${s.plan}`, { y: 40, autoAlpha: 0, duration: 1, stagger: 0.1, ease: "expo.out", scrollTrigger: { trigger: `.${s.plans}`, start: "top 80%" } });
-
-    // Nav background
     ScrollTrigger.create({ start: 40, onUpdate: (self) => root.current?.querySelector(`.${s.nav}`)?.classList.toggle(s.navOn, self.scroll() > 40) });
   }, { scope: root });
 
@@ -101,19 +89,18 @@ export default function Landing() {
     gsap.fromTo(`.${s.visual}[data-step="${step}"] .${s.vIn}`, { y: 20, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.6, stagger: 0.07, ease: "expo.out" });
   }, { scope: root, dependencies: [step] });
 
-  const parts = (["sale", "personal", "loan", "own", "refund"] as const).map((k) => ({ key: k, label: CLS_META[k].label, value: sum.by[k] + (k === "sale" ? sum.by.review : 0), color: CLS_META[k].tone }));
+  const ticker = scored.filter((x) => x.c.visits.length > 8).slice(0, 12);
 
   return (
     <div ref={root} className={s.root}>
-      {/* NAV */}
       <header className={s.nav}>
         <div className={s.navIn}>
-          <Link href="/" className={s.brand}><Logo /><span>Hisaab Kavach</span></Link>
+          <Link href="/" className={s.brand}><Logo animate /><span>Pehchaan</span><small className={s.brandSub}>for Paytm merchants</small></Link>
           <nav className={s.links}>
             <a href="#how">How it works</a>
             <a href="#features">Product</a>
-            <a href="#paytm">For Paytm</a>
-            <a href="#pricing">Pricing</a>
+            <a href="#proof">Proof</a>
+            <a href="#pricing">Business model</a>
             <a href="#faq">FAQ</a>
           </nav>
           <div className={s.navCta}>
@@ -123,104 +110,103 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* HERO */}
       <section className={s.hero}>
         <div className={s.heroBg} aria-hidden />
+        <HeroFx />
         <div className={s.heroIn}>
-          <Link href="/app/notices" className={s.pill}><span className="badge badge-info">New</span>Notice Shield now reads Kannada notices <ArrowRight size={13} /></Link>
+          <Link href="/app/radar" className={s.pill}><span className="badge badge-info">New</span>Neighbourhood radar spots new dark stores <ArrowRight size={13} /></Link>
           <h1 className={s.h1}>
-            <span className={s.line}><span className={s.word}>UPI</span> <span className={s.word}>is</span> <span className={s.word}>not</span></span>
-            <span className={s.line}><span className={`${s.word} serif`}>income.</span></span>
+            <span className={s.line}><span className={s.word}>Never</span> <span className={s.word}>lose</span> <span className={s.word}>a</span></span>
+            <span className={s.line}><RotatingWord className={`${s.word} serif`} /> <span className={s.word}>again.</span></span>
           </h1>
           <p className={s.lede}>
-            The AI accountant inside every Paytm Soundbox. Hisaab Kavach separates real sales from family money, loans and refunds —
-            and turns a tax notice into a reply in minutes, in Kannada.
+            Pehchaan turns the UPI payments every Paytm merchant already receives into Blinkit-grade customer intelligence — who&apos;s slipping away,
+            who to win back, and what just opened down the road. Spoken in Kannada on the Soundbox.
           </p>
           <div className={s.ctas}>
             <Link href="/app" className="btn btn-primary btn-lg">Open live demo <ArrowRight size={16} /></Link>
             <a href="#how" className="btn btn-secondary btn-lg">See how it works</a>
           </div>
           <div className={s.trust}>
-            <span><Check size={14} />Works on Paytm QR &amp; Soundbox</span>
+            <span><Check size={14} />Runs on payments merchants already receive</span>
+            <span><Check size={14} />Backtested · {backtest.corr.toFixed(2)} correlation</span>
             <span><Check size={14} />ಕನ್ನಡ · हिंदी · English</span>
-            <span><Check size={14} />Every reply CA-reviewable</span>
           </div>
         </div>
 
         <div className={s.stageHero}>
           <div className={s.frame}>
-            <div className={s.chrome}><i /><i /><i /><span>app.hisaabkavach.in/overview</span></div>
+            <div className={s.chrome}><i /><i /><i /><span>app.pehchaan.in/today</span></div>
             <div className={s.mock}>
               <aside className={s.mSide}>
-                <div className={s.mBrand}><Logo size={18} /><b>Kavach</b></div>
-                {["Overview", "Transactions", "Review queue", "Notice shield", "Forecast"].map((x, i) => <span key={x} className={i === 0 ? s.mOn : ""}>{x}</span>)}
+                <div className={s.mBrand}><Logo size={18} /><b>Pehchaan</b></div>
+                {["Today", "Customers", "Win-back agent", "How it predicts", "Neighbourhood radar"].map((x, i) => <span key={x} className={i === 0 ? s.mOn : ""}>{x}</span>)}
               </aside>
               <div className={s.mMain}>
                 <div className={s.mKpis}>
-                  <div><small>UPI credits · FY 25–26</small><b className="mono">{L(sum.gross)}</b></div>
-                  <div><small>Business turnover</small><b className="mono">{L(sum.business)}</b></div>
-                  <div><small>Set aside</small><b className="mono">{L(sum.nonBusiness)}</b></div>
-                  <div className={s.mGood}><small>Tax due on notice</small><b className="mono">₹0</b></div>
+                  <div><small>Active regulars</small><b className="mono">{stats.active}</b></div>
+                  <div><small>Slipping away</small><b className="mono">{winnable.length}</b></div>
+                  <div><small>Spend walking away</small><b className="mono">{L(stats.atRisk)}/mo</b></div>
+                  <div className={s.mGood}><small>Model accuracy</small><b className="mono">{backtest.corr.toFixed(2)}</b></div>
                 </div>
                 <div className={s.mGrid}>
-                  <div className={s.mCard}><small>Cumulative turnover vs ₹40L · FY 26–27</small><CumulativeChart points={cum} threshold={THRESHOLD} fmt={L} height={200} /></div>
-                  <div className={s.mCard}><small>Where the money came from</small><Composition parts={parts} fmt={L} /></div>
+                  <div className={s.mCard}><small>Weekly visits vs model expectation</small><CumulativeChart points={stats.weekly} fmt={(n) => Math.round(n).toString()} names={{ actual: "Visits", projected: "Expected" }} height={200} /></div>
+                  <div className={s.mCard}><small>Your customers</small><Composition parts={stats.parts} fmt={(n) => Math.round(n).toString()} /></div>
                 </div>
               </div>
             </div>
           </div>
-          <div className={`${s.float} ${s.f1}`}><span className={s.fDot} style={{ background: "var(--c-loan)" }} /><span><b>MUTHOOT FINANCE</b><small>Gold loan · not income</small></span><em className="mono">₹3,00,000</em></div>
-          <div className={`${s.float} ${s.f2}`}><span className={s.fDot} style={{ background: "var(--c-personal)" }} /><span><b>RAVI GOWDA</b><small>Brother in Dubai · personal</small></span><em className="mono">₹40,000</em></div>
-          <div className={`${s.float} ${s.f3}`}><ShieldCheck size={16} /><span><b>Notice ASMT-10</b><small><s>₹7,71,150</s> → ₹0 due</small></span></div>
-          <div className={`${s.float} ${s.f4}`}><Volume2 size={16} /><span className="kn">ಇದು ಅಂಗಡಿ ವ್ಯಾಪಾರವೇ?</span></div>
+          {top && <div className={`${s.float} ${s.f1}`}><span className={s.fDot} style={{ background: "var(--c-personal)" }} /><span><b>{top.c.name}</b><small>{gapText(top.avgGap)} · gone {Math.round(top.lastSeen)} days</small></span><em className="mono">{Math.round(top.pAlive * 100)}%</em></div>}
+          <div className={`${s.float} ${s.f2}`}><Radar size={16} /><span><b>New store detected</b><small>{net.flaggedCount} shops losing regulars · same week</small></span></div>
+          <div className={`${s.float} ${s.f3}`}><BellRing size={16} /><span><b>Back after 12 days</b><small>Soundbox: “Welcome back!”</small></span></div>
+          <div className={`${s.float} ${s.f4}`}><Volume2 size={16} /><span className="kn">3 ಗ್ರಾಹಕರು ಈ ವಾರ ಬಂದಿಲ್ಲ</span></div>
         </div>
       </section>
 
-      {/* TICKER */}
-      <section className={s.ticker} aria-label="Live classification">
+      <section className={s.ticker} aria-label="Customers recognised">
         <div className={s.track}>
-          {[...TICKER, ...TICKER].map(([p, a, c], i) => (
+          {[...ticker, ...ticker].map((x, i) => (
             <span key={i} className={s.tItem}>
-              <span className={s.tName}>{p}</span>
-              <span className="mono">{inr(a)}</span>
-              <span className="badge"><span className="sw" style={{ background: CLS_META[c].tone }} />{CLS_META[c].short}</span>
+              <span className={s.tName}>{x.c.name}</span>
+              <span className="mono">{x.c.visits.length} visits</span>
+              <span className="badge"><span className="sw" style={{ background: SEGMENTS[x.segment].color }} />{SEGMENTS[x.segment].label}</span>
             </span>
           ))}
         </div>
       </section>
 
-      {/* PROBLEM */}
+      <Recognition />
+
       <section className={s.problem}>
         <div className={s.problemIn}>
           <div className={s.pLeft}>
             <span className={s.eyebrow}>The problem</span>
-            <h2 className={s.h2Dark}>A notice based on UPI inflows asked a Bengaluru juice seller for</h2>
-            <div className={s.bigNum}><span data-num>₹0.00</span><small> lakh</small></div>
-            <p className={s.pText}>In July 2025, Karnataka&apos;s tax department used UPI data to issue notices to small traders. The response on the street was immediate.</p>
-            <div className={s.sign}><span>NO UPI</span><span>ONLY CASH</span></div>
+            <h2 className={s.h2Dark}>Quick commerce is taking the kirana&apos;s best customers. In a recent survey,</h2>
+            <div className={s.bigNum}><span data-num>0%</span><small> of shoppers said they rely less on their kirana</small></div>
+            <p className={s.pText}>The kirana&apos;s only edge is the relationship. But a shopkeeper with 400 customers can&apos;t notice who stopped coming — until they&apos;re gone.</p>
+            <div className={s.sign}><span>WHERE IS</span><span>SHARMA JI?</span></div>
           </div>
           <div className={s.pRows}>
             {[
-              ["Credits ≠ turnover", "A brother's remittance, a gold loan and a supplier refund all landed on the same QR — and all were counted as sales."],
-              ["Exempt goods, taxed anyway", "Vegetables, fruit and milk are nil-rated under GST. The notices didn't distinguish."],
-              ["QR codes came down", "Traders peeled off stickers and went back to cash. Every one is volume Paytm loses and a merchant pushed out of the formal economy."],
+              ["Customers leave silently", "Nobody cancels a kirana. They just order from an app one week, and don't come back. There's no signal — unless you're counting."],
+              ["The data already exists", "Every UPI payment carries the customer's name and ID. Paytm sees it for ~1.5 crore subscription merchants — and today it's only used to say “payment received”."],
+              ["One shop sees noise. Paytm sees a pattern.", "A dip at one kirana is a bad week. The same dip at seven shops around one point is a new dark store — and only the network can see it."],
             ].map(([t, d], i) => (
               <div key={t} className={s.pRow}>
                 <span className="mono">0{i + 1}</span>
                 <div><b>{t}</b><p>{d}</p></div>
               </div>
             ))}
-            <p className={s.src}>Sources: ETV Bharat, The South First, Business Today (Jul 2025)</p>
+            <p className={s.src}>Sources: Grant Thornton Bharat kirana survey via NEXT IAS (Jul 2026); Paytm subscription merchants via Inc42 (FY26)</p>
           </div>
         </div>
       </section>
 
-      {/* STORY (pinned) */}
       <section id="how" className={s.story}>
         <div className={s.storyIn}>
           <div className={s.storyLeft}>
             <span className={s.eyebrowDark}>How it works</span>
-            <h2 className={s.h2}>Four steps. <span className="serif">Zero paperwork.</span></h2>
+            <h2 className={s.h2}>From a payment <span className="serif">to a relationship.</span></h2>
             <div className={s.steps}>
               <div className={s.progress}><span className={s.progressFill} /></div>
               {STORY.map((st, i) => {
@@ -238,34 +224,35 @@ export default function Landing() {
             <div className={s.visual} data-step={step}>
               {step === 0 && (
                 <div className={s.vList}>
-                  {TICKER.slice(0, 6).map(([p, a], i) => (
-                    <div key={i} className={`${s.vRow} ${s.vIn}`}><span className={s.vAv}>{p[0]}</span><span>{p}</span><em className="mono">+{inr(a)}</em></div>
+                  {ticker.slice(0, 6).map((x) => (
+                    <div key={x.c.id} className={`${s.vRow} ${s.vIn}`}><span className={s.vAv}>{x.c.name.split(" ").map((p) => p[0]).join("")}</span><span>{x.c.name}<small className={s.vSub}>{x.c.vpa}</small></span><span className="mono">{x.c.visits.length} visits</span><em>{gapText(x.avgGap)}</em></div>
                   ))}
                 </div>
               )}
-              {step === 1 && (
-                <div className={s.vList}>
-                  {TICKER.slice(0, 6).map(([p, a, c], i) => (
-                    <div key={i} className={`${s.vRow} ${s.vIn}`}><span className={s.vAv} style={{ background: `color-mix(in srgb, ${CLS_META[c].tone} 16%, white)`, color: CLS_META[c].tone }}>{p[0]}</span><span>{p}</span><span className="badge"><span className="sw" style={{ background: CLS_META[c].tone }} />{CLS_META[c].short}</span><em className="mono">{inr(a)}</em></div>
-                  ))}
+              {step === 1 && top && (
+                <div className={s.vPredict}>
+                  <div className={`${s.vCard} ${s.vIn}`}>
+                    <b>{top.c.name}</b><small>{gapText(top.avgGap)} for {Math.round(top.rfm.tx / 30)} months · last seen {Math.round(top.lastSeen)} days ago</small>
+                    <svg viewBox="0 0 300 90" className={s.vCurve}><path d="M0,12 C60,10 120,14 170,16 C200,18 215,30 235,52 C255,70 275,78 300,80" /><line x1="170" x2="170" y1="0" y2="90" /></svg>
+                    <div className={s.vNums}><span><small>a month ago</small><b className="mono">{Math.round(top.pAlive30 * 100)}%</b></span><ArrowRight size={16} /><span><small>still a regular</small><b className="mono">{Math.round(top.pAlive * 100)}%</b></span></div>
+                  </div>
                 </div>
               )}
               {step === 2 && (
                 <div className={s.vAsk}>
-                  <div className={`${s.vBubble} ${s.vIn}`}><span className={s.vBot}><Mic size={14} /></span><p className="kn">ಗ್ರೀನ್ ಬೌಲ್ ಕೆಫೆ ಅವರಿಂದ ₹36,000 ಬಂದಿದೆ. ಇದು ಅಂಗಡಿ ವ್ಯಾಪಾರವೇ, ಅಥವಾ ಮನೆಯ ಹಣವೇ?</p></div>
+                  <div className={`${s.vBubble} ${s.vIn}`}><span className={s.vBot}><Send size={14} /></span><p className="kn">ನಮಸ್ಕಾರ {top?.c.name.split(" ")[0]} ಅವರೇ! ಇವತ್ತು ತಾಜಾ ತರಕಾರಿ ಬಂದಿದೆ — ನಿಮಗಾಗಿ ₹30 ರಿಯಾಯಿತಿ, ಈ ವಾರ ಮಾತ್ರ.</p></div>
                   <div className={`${s.vWave} ${s.vIn}`}>{Array.from({ length: 36 }, (_, i) => <i key={i} style={{ height: `${20 + Math.abs(Math.sin(i * 1.7)) * 70}%` }} />)}</div>
-                  <div className={`${s.vReply} ${s.vIn}`}><p className="kn">“ವ್ಯಾಪಾರ — ಕೆಫೆ ಆರ್ಡರ್.”</p><span className="badge badge-good"><Check size={12} />Logged as sale</span></div>
+                  <div className={`${s.vReply} ${s.vIn}`}><p>Soundbox: “{top?.c.name.split(" ")[0]} is back after 12 days.”</p><span className="badge badge-good"><Check size={12} />Won back</span></div>
                 </div>
               )}
               {step === 3 && (
-                <div className={s.vShield}>
-                  <div className={`${s.vNotice} ${s.vIn}`}><FileText size={18} /><span><b>ASMT-10 · FY 2025–26</b><small>Turnover per UPI data: ₹53,00,000</small></span></div>
-                  <div className={`${s.vRec} ${s.vIn}`}>
-                    {[["UPI credits", sum.gross, false], ["Family & friends", -sum.by.personal, true], ["Loans", -sum.by.loan, true], ["Own money", -sum.by.own, true], ["Business turnover", sum.business, false]].map(([k, v, minus]) => (
-                      <div key={k as string} className={minus ? s.minus : ""}><span>{k as string}</span><span className="mono">{(v as number) < 0 ? "−" : ""}{L(Math.abs(v as number))}</span></div>
-                    ))}
-                  </div>
-                  <div className={`${s.vDue} ${s.vIn}`}><span><small>Demanded</small><s className="mono">₹7,71,150</s></span><ArrowRight size={18} /><span><small>Actually due</small><b className="mono">₹0</b></span></div>
+                <div className={s.vMap}>
+                  <svg viewBox="-2400 -2400 4800 4800" className={s.vIn}>
+                    <rect x={-2400} y={-2400} width={4800} height={4800} fill="var(--surface)" />
+                    {net.merchants.map((m) => <circle key={m.id} cx={m.x} cy={m.y} r={m.self ? 110 : 80} fill={m.flagged ? "var(--bad)" : "var(--border-strong)"} stroke="#fff" strokeWidth={18} />)}
+                    <circle cx={net.inferred.x} cy={net.inferred.y} r={net.inferred.decayM * 2} fill="var(--bad)" fillOpacity={0.12} stroke="var(--bad)" strokeWidth={10} strokeDasharray="30 24" />
+                  </svg>
+                  <div className={`${s.vMapNote} ${s.vIn}`}><b>{net.flaggedCount} shops</b> lost regulars the same week → source located within ~{Math.round(net.inferred.errorM / 50) * 50} m</div>
                 </div>
               )}
             </div>
@@ -273,81 +260,74 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* BENTO */}
       <section id="features" className={s.section}>
         <div className={s.head}>
           <span className={s.eyebrowDark}>Product</span>
-          <h2 className={`${s.h2} ${s.reveal}`}>Everything a small merchant&apos;s <span className="serif">accountant</span> would do.</h2>
+          <h2 className={`${s.h2} ${s.reveal}`}>The customer intelligence <span className="serif">Blinkit has</span> — for the shop next door.</h2>
         </div>
         <div className={s.bento}>
           <div className={`${s.tile} ${s.tWide}`}>
-            <div className={s.tHead}><LineChart size={18} /><b>Turnover meter &amp; forecast</b></div>
-            <p>Know months ahead if you&apos;ll cross ₹40 lakh — and what registering will actually cost.</p>
-            <div className={s.tMeter}>
-              <div><span style={{ width: "62%" }} /><em className="mono">₹24.3L today</em></div>
-              <div className={s.tProj}><span style={{ width: "74%" }} /><em className="mono">₹44.3L by March</em></div>
-              <i style={{ left: "66.6%" }}><small>₹40L</small></i>
-            </div>
+            <div className={s.tHead}><LineChart size={18} /><b>Churn probability for every customer</b></div>
+            <p>Not “hasn&apos;t come in 30 days”. A daily regular gone for a week matters more than a monthly one gone for a month — the model knows the difference.</p>
+            <ul className={s.tRisk}>
+              {winnable.slice(0, 3).map((x) => (
+                <li key={x.c.id}><b>{x.c.name}</b><span>{gapText(x.avgGap)} · gone {Math.round(x.lastSeen)}d</span><span className="badge badge-warn">{Math.round(x.pAlive * 100)}% regular</span></li>
+              ))}
+            </ul>
           </div>
           <div className={s.tile}>
-            <div className={s.tHead}><Languages size={18} /><b>Asks in Kannada</b></div>
-            <p>Unclear credits become one spoken question on the Soundbox.</p>
+            <div className={s.tHead}><Volume2 size={18} /><b>Morning brief, in Kannada</b></div>
+            <p>The Soundbox tells the owner who&apos;s slipping and who to expect — no app to open.</p>
             <div className={s.tWave}>{Array.from({ length: 24 }, (_, i) => <i key={i} style={{ animationDelay: `${i * 0.06}s` }} />)}</div>
           </div>
-          <div className={s.tile}>
-            <div className={s.tHead}><FileSearch size={18} /><b>Notice shield</b></div>
-            <p>Photo in, reconciliation and reply letter out.</p>
-            <div className={s.tStrike}><s className="mono">₹7,71,150</s><b className="mono">₹0</b></div>
+          <div className={s.tile} id="proof">
+            <div className={s.tHead}><BrainCircuit size={18} /><b>Backtested, not vibes</b></div>
+            <p>Trained to June, tested on the next 75 days it never saw.</p>
+            <div className={s.tStrike}><small className="t3">predicted {Math.round(backtest.predicted).toLocaleString("en-IN")} visits · actual {backtest.actual.toLocaleString("en-IN")}</small><b className="mono">{backtest.corr.toFixed(2)}</b><small className="t3">per-customer correlation</small></div>
           </div>
           <div className={s.tile}>
-            <div className={s.tHead}><BadgeIndianRupee size={18} /><b>Exempt sales, proven</b></div>
-            <p>Sales mix inferred from {sum.mix.n} supplier payments — APMC vs FMCG.</p>
-            <div className={s.tSplit}><span style={{ flexGrow: Math.round(sum.mix.exemptShare * 100) }}>{Math.round(sum.mix.exemptShare * 100)}% exempt</span><span style={{ flexGrow: 100 - Math.round(sum.mix.exemptShare * 100) }}>{100 - Math.round(sum.mix.exemptShare * 100)}%</span></div>
+            <div className={s.tHead}><Send size={18} /><b>Win-back agent</b></div>
+            <p>Chooses who&apos;s worth an offer, writes it, sends it through the Paytm app, and confirms the return at the counter.</p>
+            <div className={s.tSplit}><span style={{ flexGrow: 3 }}>Champions: no offer</span><span style={{ flexGrow: 2 }}>Slipping: ₹30</span></div>
           </div>
-          <div className={`${s.tile} ${s.tWide}`} id="paytm">
-            <div className={s.tHead}><Radar size={18} /><b>Merchant pulse — for Paytm</b></div>
-            <p>An autonomous agent spots merchants drifting to cash, explains their numbers in their language, and brings the QR back on.</p>
+          <div className={`${s.tile} ${s.tWide}`}>
+            <div className={s.tHead}><Radar size={18} /><b>Neighbourhood radar — for Paytm</b></div>
+            <p>Regulars leaving many shops in the same week reveal a new competitor. Paytm can warn merchants, pre-fund offers and brief field teams before the damage spreads.</p>
             <ul className={s.tRisk}>
-              {[["Lakshmi Darshini", "QR scans 0 for 6 days", "Called in Kannada", "warn"], ["Sri Ganesh Fruits", "Collections −46%", "QR back on", "good"], ["Mahalakshmi Provisions", "Asked about a tax notice", "Report sent", "info"]].map(([n, sig, st, t]) => (
-                <li key={n}><b>{n}</b><span>{sig}</span><span className={`badge badge-${t}`}>{st}</span></li>
+              {net.merchants.filter((m) => m.flagged).slice(0, 3).map((m) => (
+                <li key={m.id}><b>{m.name}</b><span>{m.cat}</span><span className="badge badge-bad">{(m.drop * 100).toFixed(0)}% regulars</span></li>
               ))}
             </ul>
           </div>
         </div>
       </section>
 
-      {/* IMPACT */}
       <section className={s.impact}>
         <div className={s.impactIn}>
           {[
-            ["₹0", "tax wrongly demanded once credits are sorted", "Merchant"],
-            ["< 60s", "from a notice photo to a draft reply", "Merchant"],
-            [L(sum.nonBusiness), `of ${L(sum.gross)} in credits proven non-business`, "Officer"],
-            ["71%", "of drifting merchants back on QR in simulation", "Paytm"],
+            [backtest.corr.toFixed(2), "per-customer correlation on months the model never saw", "Model"],
+            [`~${Math.round(net.inferred.errorM / 50) * 50} m`, "error locating a new dark store from aggregate drops alone", "Network"],
+            [L(stats.atRisk), "a month in spend slipping away at one kirana — now visible", "Merchant"],
+            ["1.5 Cr", "Paytm subscription merchants it can run on without new hardware", "Paytm"],
           ].map(([n, d, who]) => (
-            <div key={d} className={`${s.iItem} ${s.reveal}`}>
-              <span className={s.iWho}>{who}</span>
-              <b>{n}</b>
-              <p>{d}</p>
-            </div>
+            <div key={d} className={`${s.iItem} ${s.reveal}`}><span className={s.iWho}>{who}</span><b>{n}</b><p>{d}</p></div>
           ))}
         </div>
       </section>
 
-      {/* PRICING */}
       <section id="pricing" className={s.section}>
         <div className={s.head}>
           <span className={s.eyebrowDark}>Business model</span>
-          <h2 className={`${s.h2} ${s.reveal}`}>Free for every merchant. <span className="serif">Paid when it saves real money.</span></h2>
+          <h2 className={`${s.h2} ${s.reveal}`}>Free to know your customers. <span className="serif">Paid to win them back.</span></h2>
         </div>
         <div className={s.plans}>
           {[
-            { name: "Kavach", price: "Free", per: "with every Soundbox", feats: ["Auto-sorted ledger", "₹40L forecast & alerts", "Kannada voice questions", "Monthly turnover report"], cta: "Included", hl: false },
-            { name: "Kavach Pro", price: "₹99", per: "per month", feats: ["Notice reader & reply drafts", "CA review partner network", "Evidence pack for officers", "Composition filing reminders"], cta: "Start 30-day trial", hl: true },
-            { name: "Paytm Pulse", price: "Internal", per: "retention engine", feats: ["Cash-drift detection", "Autonomous win-back agent", "Field-team task routing", "Protects QR & Soundbox revenue"], cta: "For Paytm teams", hl: false },
+            { name: "Pehchaan", price: "Free", per: "with every Soundbox", feats: ["Every UPI customer recognised", "Slipping-away alerts", "Morning brief in Kannada", "Counter greetings"], cta: "Included", hl: false },
+            { name: "Pehchaan Pro", price: "₹99", per: "per month", feats: ["Win-back agent", "Paytm app offers to lapsed customers", "Household & value insights", "Weekly results report"], cta: "Start 30-day trial", hl: true },
+            { name: "Paytm network", price: "Take rate", per: "on merchant-funded offers", feats: ["Offers drive consumer-app opens", "Neighbourhood radar for sales teams", "Soundbox retention vs competitors", "Brand-funded kirana offers"], cta: "For Paytm teams", hl: false },
           ].map((p) => (
             <div key={p.name} className={`${s.plan} ${p.hl ? s.planHl : ""}`}>
-              {p.hl && <span className={s.popular}>Most merchants upgrade after their first notice</span>}
+              {p.hl && <span className={s.popular}>Pays for itself with one regular won back</span>}
               <b className={s.planName}>{p.name}</b>
               <div className={s.price}><span>{p.price}</span><small>{p.per}</small></div>
               <ul>{p.feats.map((f) => <li key={f}><Check size={14} />{f}</li>)}</ul>
@@ -357,12 +337,11 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* FAQ */}
       <section id="faq" className={s.section}>
         <div className={s.faqGrid}>
           <div className={s.head}>
             <span className={s.eyebrowDark}>FAQ</span>
-            <h2 className={`${s.h2} ${s.reveal}`}>Questions judges <span className="serif">(and officers)</span> ask.</h2>
+            <h2 className={`${s.h2} ${s.reveal}`}>The hard <span className="serif">questions.</span></h2>
           </div>
           <div className={s.faq}>
             {FAQ.map(([q, a], i) => (
@@ -375,22 +354,21 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className={s.cta}>
         <div className={s.ctaGlow} aria-hidden />
-        <h2 className={s.reveal}>Keep the QR <span className="serif">on.</span></h2>
-        <p className={s.reveal}>Open the live dashboard for Sri Manjunatha Vegetables, HSR Layout.</p>
+        <h2 className={s.reveal}>Never lose a <span className="serif">regular.</span></h2>
+        <p className={s.reveal}>Open the live dashboard for Sri Manjunatha Stores, HSR Layout.</p>
         <div className={`${s.ctas} ${s.reveal}`}>
           <Link href="/app" className="btn btn-lg" style={{ background: "#fff", color: "var(--navy)" }}>Open dashboard <ArrowRight size={16} /></Link>
-          <Link href="/app/notices" className={`btn btn-lg ${s.ghostDark}`}>Try the notice shield</Link>
+          <Link href="/app/radar" className={`btn btn-lg ${s.ghostDark}`}>See the radar</Link>
         </div>
       </section>
 
       <footer className={s.foot}>
         <div className={s.footIn}>
-          <div className={s.brand}><Logo /><span>Hisaab Kavach</span></div>
+          <div className={s.brand}><Logo /><span>Pehchaan</span></div>
           <span>Built for Paytm Build for India AI Hackathon · Bengaluru 2026</span>
-          <span>Sayantika Laskar &amp; Harsh Shukla · Powered by Gemini &amp; Sarvam AI</span>
+          <span>Sayantika Laskar &amp; Harsh Shukla · Gemini &amp; Sarvam AI</span>
         </div>
       </footer>
     </div>

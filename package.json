@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "model:check": "tsx scripts/model-check.ts",
+    "sarvam:check": "node --env-file=.env scripts/sarvam-check.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.31.0",
@@ -26,6 +28,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.28",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
