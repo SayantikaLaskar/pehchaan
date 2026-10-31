@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { durable, put } from "@/lib/store";
+import { backend, durable, put } from "@/lib/store";
 
 export interface Offer { code: string; id: string; first: string; kn: string; hi?: string; en: string; lang?: "kn" | "hi" | "en"; offer: number; shop: string; createdAt: number; status: "sent" | "redeemed" | "optout" }
 
@@ -13,5 +13,5 @@ export async function POST(req: Request) {
     await put(`offer:${code}`, o);
     codes[it.id] = code;
   }
-  return Response.json({ codes, durable });
+  return Response.json({ codes, durable, backend });
 }

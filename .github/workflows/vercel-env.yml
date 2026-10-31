@@ -1,0 +1,24 @@
+# Sets database env vars on the Vercel project and redeploys production.
+# Run manually from GitHub → Actions → "Set Vercel env" (or `gh workflow run vercel-env.yml`).
+# Needs repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID, MONGODB_URI.
+name: Set Vercel env
+on: workflow_dispatch
+
+jobs:
+  env:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm i -g vercel@latest
+      - name: Save MONGODB_URI to Vercel (production)
+        run: printf '%s' "$MONGODB_URI" | vercel env add MONGODB_URI production --force --token "$VERCEL_TOKEN"
+      - name: Redeploy production
+        run: vercel deploy --prod --yes --token "$VERCEL_TOKEN"
