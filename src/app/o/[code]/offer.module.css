@@ -27,3 +27,6 @@
 .tick { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: var(--good); color: #fff; }
 .grey { background: var(--text-3); }
 .fine { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11.5px; color: #9fb3d6; }
+.tick { position: relative; }
+.burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+.bit { position: absolute; width: 8px; height: 12px; border-radius: 2px; opacity: 0; }

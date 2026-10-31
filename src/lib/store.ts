@@ -9,7 +9,7 @@ const TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TO
 export const backend: "mongodb" | "upstash" | "memory" = MONGO ? "mongodb" : URL_ && TOKEN ? "upstash" : "memory";
 export const durable = backend !== "memory";
 
-export interface OfferEvent { t: number; type: "redeemed" | "optout"; code: string; id: string }
+export interface OfferEvent { t: number; type: "opened" | "redeemed" | "optout"; code: string; id: string }
 
 const WEEK = 7 * 24 * 3600;
 

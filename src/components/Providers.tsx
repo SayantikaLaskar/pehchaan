@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ConsentStatus } from "@/lib/pehchaan/consent";
 import { codeOf, type Lang, type Say } from "@/lib/pehchaan/i18n";
 
-export interface Sent { at: number; offer: number; returned: boolean | null; code?: string }
+export interface Sent { at: number; offer: number; returned: boolean | null; code?: string; openedAt?: number }
 export interface Audit { t: number; actor: "Agent" | "Merchant" | "Customer" | "System"; action: string; subject?: string; detail: string }
 
 interface Ctx {
@@ -18,6 +18,7 @@ interface Ctx {
   seen: number; // last live event processed
   setSeen: (t: number) => void;
   markReturned: (id: string, returned: boolean) => void;
+  markOpened: (id: string) => void;
   consent: Record<string, ConsentStatus>; // overrides on top of the captured baseline
   setConsent: (id: string, status: ConsentStatus, name?: string) => void;
   audit: Audit[];
@@ -75,6 +76,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
     } : s));
   }, [update]);
 
+  const markOpened = useCallback((id: string) => {
+    update((s) => (s.sent[id] && !s.sent[id].openedAt ? {
+      ...s,
+      sent: { ...s.sent, [id]: { ...s.sent[id], openedAt: Date.now() } },
+      audit: [entry({ actor: "Customer", action: "Offer opened", subject: id, detail: "Opened the Paytm notification on their phone" }), ...s.audit],
+    } : s));
+  }, [update]);
+
   const setConsent = useCallback((id: string, status: ConsentStatus, name?: string) => {
     update((s) => ({
       ...s,
@@ -121,8 +130,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [lang]);
 
   const value = useMemo(
-    () => ({ status, speak, speaking, lang, setLang, sent: state.sent, markSent, markReturned, consent: state.consent, setConsent, audit: state.audit, log, reset, seen: state.seen ?? 0, setSeen }),
-    [status, speak, speaking, lang, setLang, state, markSent, markReturned, setConsent, log, reset, setSeen],
+    () => ({ status, speak, speaking, lang, setLang, sent: state.sent, markSent, markReturned, markOpened, consent: state.consent, setConsent, audit: state.audit, log, reset, seen: state.seen ?? 0, setSeen }),
+    [status, speak, speaking, lang, setLang, state, markSent, markReturned, markOpened, setConsent, log, reset, setSeen],
   );
   return <C.Provider value={value}>{children}</C.Provider>;
 }

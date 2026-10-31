@@ -63,6 +63,25 @@ export default function Winback() {
     if (plan.length) fetch("/api/messages", { method: "POST", body }).catch(() => {});
   }, [body, plan.length]);
 
+  // Each offer visibly leaves its row and lands in the phone.
+  const flyOut = () => {
+    const target = scope.current?.querySelector(`.${s.notif}`)?.getBoundingClientRect();
+    if (!target) return;
+    scope.current!.querySelectorAll<HTMLElement>(`.${s.row}`).forEach((row, i) => {
+      const r = row.getBoundingClientRect();
+      const chip = document.createElement("div");
+      chip.className = s.flyer;
+      chip.textContent = `₹${offer}`;
+      document.body.appendChild(chip);
+      gsap.set(chip, { left: r.left + 16, top: r.top + r.height / 2 - 14 });
+      gsap.timeline({ delay: i * 0.09, onComplete: () => chip.remove() })
+        .from(chip, { scale: 0, duration: 0.25, ease: "back.out(3)" })
+        .to(chip, { left: target.left + target.width / 2 - 24, top: target.top + 24, duration: 0.8, ease: "power2.inOut" })
+        .to(chip, { scale: 0.3, autoAlpha: 0, duration: 0.25 }, "-=0.1");
+    });
+    gsap.fromTo(scope.current!.querySelector(`.${s.notif}`), { scale: 1 }, { scale: 1.04, duration: 0.18, yoyo: true, repeat: 3, delay: 0.9, ease: "power1.inOut" });
+  };
+
   const log = (text: string) => setSteps((p) => [...p.map((x) => ({ ...x, state: "ok" as const })), { text, state: "run" }]);
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -78,6 +97,7 @@ export default function Winback() {
     log(`Attaching ₹${offer} store offer, redeemable only at Sri Manjunatha Stores`);
     await wait(700);
     log("Delivering as Paytm app notifications");
+    flyOut();
     const items = plan.map((x) => ({ id: x.c.id, first: x.c.name.split(" ")[0], kn: written[x.c.id]?.kn ?? "", hi: written[x.c.id]?.hi ?? "", en: written[x.c.id]?.en ?? "", lang, offer }));
     const { codes } = await fetch("/api/offers", { method: "POST", body: JSON.stringify({ items }) }).then((r) => r.json()).catch(() => ({ codes: {} }));
     await wait(900);
@@ -189,10 +209,18 @@ export default function Winback() {
             </div>
             {pm && <button className="btn btn-secondary btn-sm" disabled={speaking} onClick={() => speak(pm)}><Play size={13} />{speaking ? "Speaking…" : "Hear it"}</button>}
             {qr && pv && sent[pv.c.id]?.returned == null && (
-              <div className={s.qr}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={qr} alt={`QR code for ${pv.c.name}'s offer`} />
-                <span><b>Be {pv.c.name.split(" ")[0]} — scan to get the offer</b><small>Redeem on your phone and watch this dashboard</small>{link && <a href={link} target="_blank" rel="noreferrer" className={s.olink}>Open offer link ↗</a>}</span>
+              <div className={`${s.qr} ${sent[pv.c.id]?.openedAt ? s.qrOpened : ""}`}>
+                <div className={s.qrFrame}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={qr} alt={`QR code for ${pv.c.name}'s offer`} />
+                  <i className={s.laser} /><i className={`${s.corner} ${s.c1}`} /><i className={`${s.corner} ${s.c2}`} /><i className={`${s.corner} ${s.c3}`} /><i className={`${s.corner} ${s.c4}`} />
+                </div>
+                <span>
+                  {sent[pv.c.id]?.openedAt
+                    ? <><b className={s.live}><i />Opened on a phone</b><small>Waiting for {pv.c.name.split(" ")[0]} to redeem…</small></>
+                    : <><b>Be {pv.c.name.split(" ")[0]} — scan to get the offer</b><small>Redeem on your phone and watch this dashboard</small></>}
+                  {link && <a href={link} target="_blank" rel="noreferrer" className={s.olink}>Open offer link ↗</a>}
+                </span>
               </div>
             )}
           </div>

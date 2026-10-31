@@ -29,6 +29,7 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
       }
     } catch {}
     setEmbedded(fromLink);
+    fetch(`/api/offers/${code}`, { method: "POST", body: JSON.stringify({ action: "open", offer: fromLink }) }).catch(() => {});
     fetch(`/api/offers/${code}`).then(async (r) => {
       if (r.ok) setO(await r.json());
       else if (fromLink) setO({ ...fromLink, code, shop: "Sri Manjunatha Stores", status: "sent" });
@@ -43,7 +44,12 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
   }, { scope: root, dependencies: [o?.code] });
 
   useGSAP(() => {
-    if (o?.status === "redeemed") gsap.fromTo(`.${s.done}`, { scale: 0.6, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.6, ease: "back.out(2)" });
+    if (o?.status !== "redeemed") return;
+    gsap.fromTo(`.${s.done}`, { scale: 0.6, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 0.6, ease: "back.out(2)" });
+    gsap.utils.toArray<HTMLElement>(`.${s.bit}`).forEach((el, i) => {
+      const a = (Math.PI * 2 * i) / 36 + Math.random() * 0.3, v = 120 + Math.random() * 160;
+      gsap.fromTo(el, { x: 0, y: 0, autoAlpha: 1, rotate: 0 }, { x: Math.cos(a) * v, y: Math.sin(a) * v + 180, rotate: Math.random() * 540, autoAlpha: 0, duration: 1.6 + Math.random() * 0.5, ease: "power2.out" });
+    });
   }, { scope: root, dependencies: [o?.status] });
 
   const act = async (action: "redeem" | "optout") => {
@@ -77,7 +83,7 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
             )}
             {o.status === "redeemed" && (
               <div className={s.done}>
-                <span className={s.tick}><Check size={28} /></span>
+                <span className={s.tick}><Check size={28} /><span className={s.burst}>{Array.from({ length: 36 }, (_, i) => <i key={i} className={s.bit} style={{ background: ["#00b9f1", "#2a78d6", "#1baf7a", "#eda100", "#e87ba4"][i % 5] }} />)}</span></span>
                 <b>Welcome back, {o.first}!</b>
                 <p>₹{o.offer} off applied — show this at the counter.</p>
               </div>

@@ -57,7 +57,22 @@
 @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } .side { position: static; } .kpis { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 700px) { .row { grid-template-columns: 32px 1fr 20px; } .row > :nth-child(3), .row > :nth-child(4) { display: none; } .est { margin-left: 0; } }
 .qr { width: 100%; display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 14px; background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); color: #fff; }
-.qr img { width: 150px; height: 150px; border-radius: 10px; background: #fff; flex: none; image-rendering: pixelated; }
+.qr img { display: block; width: 150px; height: 150px; border-radius: 10px; background: #fff; image-rendering: pixelated; }
+.qrFrame { position: relative; flex: none; padding: 6px; }
+.laser { position: absolute; left: 6px; right: 6px; height: 2px; top: 6px; background: var(--cyan); box-shadow: 0 0 14px 3px rgba(0,185,241,.7); animation: laser 2.2s ease-in-out infinite; }
+@keyframes laser { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(148px); } }
+.corner { position: absolute; width: 22px; height: 22px; border: 3px solid var(--cyan); animation: corner 1.6s ease-in-out infinite; }
+.c1 { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0; }
+.c2 { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 8px 0 0; }
+.c3 { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 8px; }
+.c4 { bottom: 0; right: 0; border-left: 0; border-top: 0; border-radius: 0 0 8px 0; }
+@keyframes corner { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: .6; } }
+.qrOpened { box-shadow: inset 0 0 0 1.5px var(--good), 0 0 30px -6px rgba(18,128,92,.7); }
+.qrOpened .laser { animation-duration: .9s; background: #4ade80; box-shadow: 0 0 14px 3px rgba(74,222,128,.7); }
+.live { display: inline-flex; align-items: center; gap: 8px; color: #86efac; }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: .2; } }
+.flyer { position: fixed; z-index: 90; padding: 6px 10px; border-radius: 999px; background: var(--cyan); color: #04253f; font-weight: 700; font-size: 13px; box-shadow: 0 8px 20px -6px rgba(0,185,241,.8); pointer-events: none; }
 .qr span { display: flex; flex-direction: column; gap: 4px; }
 .qr b { font-size: 13.5px; }
 .qr small { font-size: 12px; color: #9fb3d6; }
