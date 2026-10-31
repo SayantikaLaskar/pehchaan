@@ -32,7 +32,7 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
       }
     } catch {}
     setEmbedded(fromLink);
-    const stop = startOutbox();
+    const stop = startOutbox({ shop: false });
     post(`/api/offers/${code}`, { action: "open", offer: fromLink });
     // The offer travels inside the QR, so with no network the page still renders from the link alone.
     const local = () => fromLink ? setO({ ...fromLink, code, shop: "Sri Manjunatha Stores", status: "sent" }) : setErr("No network — open this offer again when you're back online.");

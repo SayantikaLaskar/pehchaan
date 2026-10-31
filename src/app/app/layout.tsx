@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Activity, Bell, BrainCircuit, ChevronsUpDown, FileUp, HeartHandshake, IndianRupee, LayoutDashboard, MessageCircle, Speaker, Radar, Search, Send, Settings, ShieldCheck, UserRoundX, Users } from "lucide-react";
+import { Activity, PackageOpen, Bell, BrainCircuit, ChevronsUpDown, FileUp, HeartHandshake, IndianRupee, LayoutDashboard, MessageCircle, Speaker, Radar, Search, Send, Settings, ShieldCheck, UserRoundX, Users } from "lucide-react";
 import { NetBadge } from "@/components/NetBadge";
 import { useApp } from "@/components/Providers";
 import { LiveLoop } from "@/components/LiveLoop";
@@ -29,6 +29,7 @@ const NAV = [
   { group: "Paytm network", items: [
     { href: "/app/radar", label: "Neighbourhood radar", icon: Radar, badge: "radar" },
     { href: "/app/resilience", label: "Shocks & offline", icon: Activity },
+    { href: "/app/relay", label: "Offline relay", icon: PackageOpen },
     { href: "/app/business", label: "Business case", icon: IndianRupee },
   ] },
 ];
@@ -40,6 +41,7 @@ const TITLES: Record<string, [string, string]> = {
   "/app/model": ["How it predicts", "The churn model behind every number — and how it scored on months it never saw."],
   "/app/orders": ["WhatsApp orders", "When customers can't come to the counter — they order on WhatsApp, pay by UPI, and still count as regulars."],
   "/app/resilience": ["Shocks & offline", "Lockdowns, outages and no network — telling them apart from real churn, and staying useful through them."],
+  "/app/relay": ["Offline relay", "Store, carry, forward — any visiting phone takes this shop's data out of a no-signal zone, sealed and signed."],
   "/app/radar": ["Neighbourhood radar", "Paytm view · regulars dropping off at many shops at once, and where it's coming from."],
   "/app/import": ["Your data", "Upload a Paytm payment export and see your own customers scored — in your browser."],
   "/app/business": ["Business case", "What Pehchaan is worth to Paytm — every assumption on the table."],

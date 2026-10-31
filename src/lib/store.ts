@@ -11,14 +11,18 @@ export const durable = backend !== "memory";
 
 export interface OfferEvent {
   t: number;
-  type: "opened" | "redeemed" | "optout" | "order";
+  type: "opened" | "redeemed" | "optout" | "order" | "relay";
   code: string;
   id: string;
   // WhatsApp orders only
   from?: string; // customer's WhatsApp number (masked before it reaches the browser)
   name?: string;
   text?: string;
-  via?: "cloud-api" | "simulator";
+  via?: string; // "cloud-api" | "simulator" | "relay:qr" | "relay:direct"
+  at?: number; // when it happened, if it arrived late (offline relay)
+  // relay deliveries only
+  items?: number;
+  carrier?: string;
 }
 
 const WEEK = 7 * 24 * 3600;

@@ -1,7 +1,7 @@
 // Pehchaan service worker: the dashboard, kiosk and offer pages keep working with no network.
 // The churn model runs in the browser, so cached pages can still score every customer offline.
-const CACHE = "pehchaan-v1";
-const SHELL = ["/app", "/app/winback", "/app/resilience", "/app/orders", "/kiosk", "/manifest.webmanifest", "/icon.svg"];
+const CACHE = "pehchaan-v2";
+const SHELL = ["/app", "/app/winback", "/app/resilience", "/app/orders", "/app/relay", "/relay", "/kiosk", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => Promise.allSettled(SHELL.map((u) => c.add(u)))).then(() => self.skipWaiting()));

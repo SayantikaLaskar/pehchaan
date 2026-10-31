@@ -3,21 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { BellOff, MessageCircle, Smartphone } from "lucide-react";
+import { BellOff, MessageCircle, PackageCheck, Smartphone } from "lucide-react";
 import { parseOrder, total } from "@/lib/pehchaan/orders";
 import { useApp } from "./Providers";
 import { lines } from "@/lib/pehchaan/i18n";
 import { WinMoment, type Win } from "./WinMoment";
 import { usePehchaan } from "@/lib/pehchaan/use";
 
-interface LoopEvent { t: number; type: "opened" | "redeemed" | "optout" | "order"; code: string; id: string; name?: string; text?: string }
+interface LoopEvent { t: number; type: "opened" | "redeemed" | "optout" | "order" | "relay"; code: string; id: string; name?: string; text?: string; items?: number; carrier?: string; at?: number }
 
 // Listens for customers acting on their phones and reflects it on the dashboard and the Soundbox.
 export function LiveLoop() {
   const { sent, seen, setSeen, markReturned, markOpened, setConsent, speak, lang } = useApp();
   const [win, setWin] = useState<Win | null>(null);
   const { scored } = usePehchaan();
-  const [toast, setToast] = useState<{ title: string; kn?: string; optout?: boolean; order?: boolean } | null>(null);
+  const [toast, setToast] = useState<{ title: string; kn?: string; optout?: boolean; order?: boolean; relay?: boolean } | null>(null);
   const box = useRef<HTMLDivElement>(null);
   const waiting = Object.values(sent).some((v) => v.code && v.returned == null);
   const state = useRef({ sent, seen, lang });
@@ -34,6 +34,13 @@ export function LiveLoop() {
       const amount = total(parseOrder(e.text ?? ""));
       setToast({ title: `WhatsApp order from ${first}${amount ? ` · ₹${amount}` : ""}`, kn: e.text, order: true });
       speak(lines.order(first, amount));
+      return;
+    }
+    // A sealed bundle arrived from a shop that had no signal — carried out by a visiting phone.
+    if (e.type === "relay") {
+      if (e.t < Date.now() - 2 * 60_000) return;
+      const late = e.at ? Math.max(1, Math.round((e.t - e.at) / 60000)) : 0;
+      setToast({ title: `${e.items} action${e.items === 1 ? "" : "s"} synced from ${e.name || "a shop"}`, kn: e.carrier === "qr" ? `Carried out of a no-signal zone by a visiting phone${late ? ` · ${late < 60 ? `${late} min` : `${(late / 60).toFixed(1)} h`} after it happened` : ""}` : "Sent by the shop's device as soon as it got signal", relay: true });
       return;
     }
     const mine = state.current.sent[e.id];
@@ -87,11 +94,11 @@ export function LiveLoop() {
   if (!toast) return null;
   return (
     <div ref={box} onClick={() => setToast(null)} style={{ position: "fixed", left: "50%", top: 72, zIndex: 95, display: "flex", alignItems: "center", gap: 12, padding: "14px 18px 14px 14px", borderRadius: 14, background: "var(--text)", color: "#fff", boxShadow: "var(--shadow-3)", cursor: "pointer", maxWidth: 400 }}>
-      <span style={{ width: 36, height: 36, borderRadius: 10, display: "grid", placeItems: "center", background: toast.optout ? "var(--text-3)" : toast.order ? "#25d366" : "var(--good)", flex: "none" }}>{toast.optout ? <BellOff size={16} /> : toast.order ? <MessageCircle size={16} /> : <Smartphone size={16} />}</span>
+      <span style={{ width: 36, height: 36, borderRadius: 10, display: "grid", placeItems: "center", background: toast.optout ? "var(--text-3)" : toast.order ? "#25d366" : toast.relay ? "var(--navy)" : "var(--good)", flex: "none" }}>{toast.optout ? <BellOff size={16} /> : toast.order ? <MessageCircle size={16} /> : toast.relay ? <PackageCheck size={16} /> : <Smartphone size={16} />}</span>
       <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <b style={{ fontSize: 14 }}>{toast.title}</b>
         {toast.kn && <small className="kn" style={{ fontSize: 13, color: "#b9bac2" }}>{toast.kn}</small>}
-        <small style={{ fontSize: 12, color: "#8d8d94" }}>{toast.order ? "Announced on the Soundbox · see WhatsApp orders" : "Live from the customer\u2019s phone"}</small>
+        <small style={{ fontSize: 12, color: "#8d8d94" }}>{toast.order ? "Announced on the Soundbox · see WhatsApp orders" : toast.relay ? "Pehchaan Relay · sealed, verified, applied once" : "Live from the customer\u2019s phone"}</small>
       </span>
     </div>
   );
