@@ -86,6 +86,13 @@ export function LiveLoop() {
     return () => { stop = true; };
   }, [waiting, setSeen]);
 
+  // Toasts clear themselves; a busy counter shouldn't have to tap them away.
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 6000);
+    return () => clearTimeout(id);
+  }, [toast]);
+
   useGSAP(() => {
     if (toast && box.current) gsap.fromTo(box.current, { y: -24, autoAlpha: 0, scale: 0.96, xPercent: -50 }, { y: 0, autoAlpha: 1, scale: 1, xPercent: -50, duration: 0.6, ease: "expo.out" });
   }, { dependencies: [toast] });

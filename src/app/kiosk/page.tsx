@@ -60,13 +60,13 @@ export default function Kiosk() {
     const f = x.c.name.split(" ")[0];
     setSpecial((p) => ({ n: (p?.n ?? 0) + 1, beat: { name: x.c.name, vpa: x.c.vpa, amount, visits: x.c.visits.length + 1, usual: gapText(x.avgGap), p: 0.9, badge: `₹${r.applied} offer applied`, color: "var(--good)", note: `Paid ₹${r.paid} · matched by UPI ID`, say: lines.applied(f, r.applied) } }));
   };
-  const next = useRef<() => void>(() => {});
-  next.current = () => { if (pending[0]) applyAt(pending[0]); else { setSpecial(null); setI((x) => x + 1); } };
   const b = special?.beat ?? beats[i % beats.length];
 
+  // The ambient stream only greets regulars; an offer is applied when the presenter presses "… pays",
+  // so a demo never spends the agent's offers before the shop has gone offline.
   useEffect(() => {
     if (!started || !live) return;
-    const id = setInterval(() => next.current(), 7000);
+    const id = setInterval(() => { setSpecial(null); setI((x) => x + 1); }, 7000);
     return () => clearInterval(id);
   }, [started, live]);
 
