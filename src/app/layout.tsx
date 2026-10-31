@@ -11,6 +11,7 @@ const kn = Noto_Sans_Kannada({ subsets: ["kannada"], variable: "--font-kn" });
 export const metadata: Metadata = {
   title: "Pehchaan — Never lose a regular",
   description: "Customer intelligence for Paytm merchants: churn prediction from UPI payments, a Kannada win-back agent, and a neighbourhood radar.",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

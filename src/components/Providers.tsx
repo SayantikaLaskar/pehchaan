@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ConsentStatus } from "@/lib/pehchaan/consent";
 import { codeOf, type Lang, type Say } from "@/lib/pehchaan/i18n";
+import { startOutbox } from "@/lib/outbox";
 
 export interface Sent { at: number; offer: number; returned: boolean | null; code?: string; openedAt?: number }
 export interface Audit { t: number; actor: "Agent" | "Merchant" | "Customer" | "System"; action: string; subject?: string; detail: string }
@@ -46,6 +47,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       if (raw) setState({ sent: {}, consent: {}, audit: [], ...JSON.parse(raw) });
     } catch {}
     fetch("/api/status").then((r) => r.json()).then(setStatus).catch(() => setStatus({ gemini: false, sarvam: false }));
+    // Offline-first: cache the app shell (production builds only — dev chunks change on every edit).
+    if ("serviceWorker" in navigator && process.env.NODE_ENV === "production") navigator.serviceWorker.register("/sw.js").catch(() => {});
+    return startOutbox();
   }, []);
 
   const update = useCallback((fn: (s: Saved) => Saved) => {

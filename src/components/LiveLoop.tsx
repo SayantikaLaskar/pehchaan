@@ -9,7 +9,7 @@ import { lines } from "@/lib/pehchaan/i18n";
 import { WinMoment, type Win } from "./WinMoment";
 import { usePehchaan } from "@/lib/pehchaan/use";
 
-interface Event { t: number; type: "opened" | "redeemed" | "optout"; code: string; id: string }
+interface LoopEvent { t: number; type: "opened" | "redeemed" | "optout" | "order"; code: string; id: string }
 
 // Listens for customers acting on their phones and reflects it on the dashboard and the Soundbox.
 export function LiveLoop() {
@@ -22,40 +22,52 @@ export function LiveLoop() {
   const state = useRef({ sent, seen, lang });
   state.current = { sent, seen, lang };
 
+  // One handler for every source: server events (Paytm app, WhatsApp) and local ones heard over sound.
+  const handle = useRef<(e: LoopEvent) => void>(() => {});
+  handle.current = (e: LoopEvent) => {
+    const mine = state.current.sent[e.id];
+    if (!mine || mine.code !== e.code || mine.returned != null) return;
+    const who = scored.find((x) => x.c.id === e.id);
+    const name = who?.c.name ?? "Customer";
+    const first = name.split(" ")[0];
+    if (e.type === "opened") {
+      markOpened(e.id);
+      setToast({ title: `${first} opened the offer on their phone`, kn: "Waiting for them to redeem…" });
+    } else if (e.type === "redeemed") {
+      markReturned(e.id, true);
+      setToast(null);
+      const say = lines.back(first);
+      setWin({ name, line: say[state.current.lang], kannada: state.current.lang === "kn", monthly: who?.monthly ?? 0, offer: mine.offer, visits: (who?.c.visits.length ?? 0) + 1 });
+      speak(say);
+    } else if (e.type === "optout") {
+      markReturned(e.id, false);
+      setConsent(e.id, "withdrawn");
+      setToast({ title: `${name} stopped offers — consent withdrawn`, optout: true });
+    }
+  };
+
+  useEffect(() => {
+    const local = (ev: Event) => handle.current((ev as CustomEvent<LoopEvent>).detail);
+    window.addEventListener("pehchaan-local-event", local);
+    return () => window.removeEventListener("pehchaan-local-event", local);
+  }, []);
+
   useEffect(() => {
     if (!waiting) return;
     let stop = false;
     const tick = async () => {
       try {
-        const { events } = (await fetch(`/api/offers/events?since=${state.current.seen}`, { cache: "no-store" }).then((r) => r.json())) as { events: Event[] };
+        const { events } = (await fetch(`/api/offers/events?since=${state.current.seen}`, { cache: "no-store" }).then((r) => r.json())) as { events: LoopEvent[] };
         for (const e of events) {
           setSeen(e.t);
-          const mine = state.current.sent[e.id];
-          if (!mine || mine.code !== e.code || mine.returned != null) continue;
-          const who = scored.find((x) => x.c.id === e.id);
-          const name = who?.c.name ?? "Customer";
-          const first = name.split(" ")[0];
-          if (e.type === "opened") {
-            markOpened(e.id);
-            setToast({ title: `${first} opened the offer on their phone`, kn: "Waiting for them to redeem…" });
-          } else if (e.type === "redeemed") {
-            markReturned(e.id, true);
-            setToast(null);
-            const say = lines.back(first);
-            setWin({ name, line: say[state.current.lang], kannada: state.current.lang === "kn", monthly: who?.monthly ?? 0, offer: mine.offer, visits: (who?.c.visits.length ?? 0) + 1 });
-            speak(say);
-          } else {
-            markReturned(e.id, false);
-            setConsent(e.id, "withdrawn");
-            setToast({ title: `${name} stopped offers — consent withdrawn`, optout: true });
-          }
+          handle.current(e);
         }
       } catch {}
       if (!stop) setTimeout(tick, 2000);
     };
     tick();
     return () => { stop = true; };
-  }, [waiting, scored, setSeen, markReturned, markOpened, setConsent, speak]);
+  }, [waiting, setSeen]);
 
   useGSAP(() => {
     if (toast && box.current) gsap.fromTo(box.current, { y: -24, autoAlpha: 0, scale: 0.96, xPercent: -50 }, { y: 0, autoAlpha: 1, scale: 1, xPercent: -50, duration: 0.6, ease: "expo.out" });

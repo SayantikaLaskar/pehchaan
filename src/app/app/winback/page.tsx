@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "qrcode";
+import { post } from "@/lib/outbox";
+import { SoundListener } from "@/components/SoundListener";
+import { offerText } from "@/lib/pehchaan/i18n";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Bot, BrainCircuit, Check, CircleDashed, Loader2, Play, RotateCcw, Send, Sparkles } from "lucide-react";
@@ -91,15 +94,21 @@ export default function Winback() {
     log(`Selected ${plan.length} customers — highest monthly spend × probability they've left`);
     await wait(700);
     log(status?.gemini ? "Writing a personal message for each, in Kannada (Gemini)" : "Writing a personal message for each, in Kannada");
-    const { msgs: written } = await fetch("/api/messages", { method: "POST", body }).then((r) => r.json());
+    const { msgs: got } = (await fetch("/api/messages", { method: "POST", body }).then((r) => r.json()).catch(() => ({ msgs: {} }))) as { msgs: Record<string, Message> };
+    // Offline: the same Kannada / Hindi / English templates the server falls back to.
+    const written: Record<string, Message> = Object.fromEntries(plan.map((x) => [x.c.id, got[x.c.id] ?? offerText(x.c.name.split(" ")[0], offer)]));
     setMsgs((p) => ({ ...p, ...written }));
     if (plan[0]) setPreview(plan[0].c.id);
     log(`Attaching ₹${offer} store offer, redeemable only at Sri Manjunatha Stores`);
     await wait(700);
     log("Delivering as Paytm app notifications");
     flyOut();
-    const items = plan.map((x) => ({ id: x.c.id, first: x.c.name.split(" ")[0], kn: written[x.c.id]?.kn ?? "", hi: written[x.c.id]?.hi ?? "", en: written[x.c.id]?.en ?? "", lang, offer }));
-    const { codes } = await fetch("/api/offers", { method: "POST", body: JSON.stringify({ items }) }).then((r) => r.json()).catch(() => ({ codes: {} }));
+    // Codes are minted here, so the QR works even if the network drops mid-send; the outbox syncs it later.
+    const mint = () => btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(6)))).replace(/\+/g, "-").replace(/\//g, "_").slice(0, 6);
+    const items = plan.map((x) => ({ id: x.c.id, code: mint(), first: x.c.name.split(" ")[0], kn: written[x.c.id]?.kn ?? "", hi: written[x.c.id]?.hi ?? "", en: written[x.c.id]?.en ?? "", lang, offer }));
+    const codes = Object.fromEntries(items.map((it) => [it.id, it.code]));
+    const res = await post("/api/offers", { items });
+    if (!res) log("No network — offers saved on this device, they'll send when it's back");
     await wait(900);
     markSent(plan.map((x) => x.c.id), offer, Object.fromEntries(plan.map((x) => [x.c.id, `P(regular) ${Math.round(x.pAlive * 100)}% (was ${Math.round(x.pAlive30 * 100)}%), ${Math.round(x.lastSeen)}d since last visit`])), codes);
     log(`Sent. Watching the Soundbox for their next payment.`);
@@ -222,6 +231,9 @@ export default function Winback() {
                   {link && <a href={link} target="_blank" rel="noreferrer" className={s.olink}>Open offer link ↗</a>}
                 </span>
               </div>
+            )}
+            {Object.values(sent).some((x) => x.code && x.returned == null) && (
+              <div className={s.zero}><span>Zero bars? The customer taps <b>Redeem by sound</b> on their phone; this device hears it.</span><SoundListener /></div>
             )}
           </div>
         </div>

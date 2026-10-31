@@ -9,7 +9,8 @@
     "lint": "eslint",
     "model:check": "tsx scripts/model-check.ts",
     "sarvam:check": "node --env-file=.env scripts/sarvam-check.mjs",
-    "validate:cdnow": "tsx scripts/validate-cdnow.ts"
+    "validate:cdnow": "tsx scripts/validate-cdnow.ts",
+    "resilience:check": "tsx scripts/resilience-check.ts"
   },
   "dependencies": {
     "@google/genai": "^2.31.0",

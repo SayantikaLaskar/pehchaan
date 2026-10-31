@@ -1,0 +1,10 @@
+{
+  "name": "Pehchaan for Paytm merchants",
+  "short_name": "Pehchaan",
+  "description": "Know your regulars. Works offline.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#F5F4EF",
+  "theme_color": "#0A3A86",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

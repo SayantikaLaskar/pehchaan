@@ -3,7 +3,10 @@
 import { use, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { BellOff, Check, MapPin, Store } from "lucide-react";
+import { AudioLines, BellOff, Check, CloudOff, MapPin, MessageCircle, Store } from "lucide-react";
+import { token, transmit } from "@/lib/sound";
+import { post, startOutbox } from "@/lib/outbox";
+import { MERCHANT_WA, waLink } from "@/lib/pehchaan/orders";
 import { Logo } from "@/components/Logo";
 import { offerText } from "@/lib/pehchaan/i18n";
 import s from "./offer.module.css";
@@ -29,12 +32,16 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
       }
     } catch {}
     setEmbedded(fromLink);
-    fetch(`/api/offers/${code}`, { method: "POST", body: JSON.stringify({ action: "open", offer: fromLink }) }).catch(() => {});
+    const stop = startOutbox();
+    post(`/api/offers/${code}`, { action: "open", offer: fromLink });
+    // The offer travels inside the QR, so with no network the page still renders from the link alone.
+    const local = () => fromLink ? setO({ ...fromLink, code, shop: "Sri Manjunatha Stores", status: "sent" }) : setErr("No network — open this offer again when you're back online.");
     fetch(`/api/offers/${code}`).then(async (r) => {
       if (r.ok) setO(await r.json());
-      else if (fromLink) setO({ ...fromLink, code, shop: "Sri Manjunatha Stores", status: "sent" });
+      else if (fromLink) local();
       else setErr((await r.json()).error);
-    });
+    }).catch(local);
+    return stop;
   }, [code]);
 
   useGSAP(() => {
@@ -52,12 +59,27 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
     });
   }, { scope: root, dependencies: [o?.status] });
 
+  const [queuedOffline, setQueuedOffline] = useState(false);
   const act = async (action: "redeem" | "optout") => {
     setBusy(true);
-    const r = await fetch(`/api/offers/${code}`, { method: "POST", body: JSON.stringify({ action, offer: embedded }) });
-    setO(await r.json());
+    const r = await post(`/api/offers/${code}`, { action, offer: embedded });
+    if (r) setO(await r.json());
+    else if (o) { setO({ ...o, status: action === "redeem" ? "redeemed" : "optout" }); setQueuedOffline(true); }
     setBusy(false);
   };
+  // Zero bars at the counter: play the offer as sound; the shop's device hears it and redeems.
+  const [chirp, setChirp] = useState(false);
+  const bySound = async () => {
+    if (!o) return;
+    setChirp(true);
+    try {
+      await transmit(token(o.code, embedded?.id ?? ""));
+      setO({ ...o, status: "redeemed" });
+      post(`/api/offers/${code}`, { action: "redeem", offer: embedded });
+    } finally { setChirp(false); }
+  };
+  // Can't come to the counter (rain, lockdown, unwell): order on the shop's WhatsApp instead.
+  const wa = o ? waLink(MERCHANT_WA, `Hi ${o.shop}, this is ${o.first}. I'd like a home delivery with my ₹${o.offer} offer (code ${o.code}):\n`) : "#";
 
   return (
     <main className={s.screen} ref={root}>
@@ -78,6 +100,8 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
               <>
                 <div className={s.amount}><span>Store offer</span><b className="mono">₹{o.offer}</b><small>on your next visit · this week</small></div>
                 <button className={s.redeem} disabled={busy} onClick={() => act("redeem")}>Redeem at the store</button>
+                <button className={s.sound} disabled={busy || chirp || !embedded} onClick={bySound}><AudioLines size={15} />{chirp ? "Playing… hold near the shop's phone" : "No internet? Redeem by sound"}</button>
+                <a className={s.wa} href={wa} target="_blank" rel="noreferrer"><MessageCircle size={15} />Can&apos;t come? Order on WhatsApp</a>
                 <button className={s.optout} disabled={busy} onClick={() => act("optout")}><BellOff size={13} />Stop offers from this store</button>
               </>
             )}
@@ -96,6 +120,7 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
               </div>
             )}
           </div>
+          {queuedOffline && <p className={s.offline}><CloudOff size={13} />No network — saved on your phone, the shop will see it when you&apos;re back online.</p>}
           <p className={s.fine}><Logo size={14} /> Sent by Pehchaan for Paytm merchants · only because you opted in</p>
         </>
       )}

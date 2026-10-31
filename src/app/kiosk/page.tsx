@@ -6,6 +6,8 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ArrowLeft, Pause, Play, Volume2 } from "lucide-react";
 import { AskSoundbox } from "@/components/AskSoundbox";
+import { SoundListener } from "@/components/SoundListener";
+import { LiveLoop } from "@/components/LiveLoop";
 import { Logo } from "@/components/Logo";
 import { useApp } from "@/components/Providers";
 import { maskVpa } from "@/lib/pehchaan/consent";
@@ -75,6 +77,7 @@ export default function Kiosk() {
         <span className={s.brand}><Logo size={24} />Pehchaan · Sri Manjunatha Stores</span>
         <div className={s.controls}>
           <div className={s.langs}>{LANGS.map((l) => <button key={l.k} aria-pressed={lang === l.k} onClick={() => setLang(l.k)}>{l.label}</button>)}</div>
+          <SoundListener compact />
           {started && <button className={s.ctl} onClick={() => setLive(!live)}>{live ? <Pause size={15} /> : <Play size={15} />}{live ? "Pause" : "Resume"}</button>}
         </div>
       </header>
@@ -115,6 +118,7 @@ export default function Kiosk() {
         </section>
       )}
 
+      <LiveLoop />
       {started && <section className={s.ask}><span className={s.askLabel}>Ask the Soundbox</span><AskSoundbox dark /></section>}
     </main>
   );

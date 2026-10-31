@@ -30,3 +30,8 @@
 .tick { position: relative; }
 .burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
 .bit { position: absolute; width: 8px; height: 12px; border-radius: 2px; opacity: 0; }
+
+.wa { display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border-radius: 12px; background: #e8f8ee; color: #128c4a; font-weight: 600; font-size: 14.5px; text-decoration: none; }
+.offline { display: flex; align-items: center; gap: 8px; margin: 12px 4px 0; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.1); color: #fff; font-size: 12.5px; line-height: 1.4; }
+.sound { display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border-radius: 12px; background: #0b2a5c; color: #fff; font-weight: 600; font-size: 14.5px; }
+.sound:disabled { opacity: .7; }

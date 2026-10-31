@@ -65,6 +65,17 @@ The LLM never decides who or how much. It only writes the words. The win-back ag
 | `/kiosk` | Full-screen Soundbox: live payments greeted aloud, voice questions, Kannada / Hindi / English |
 | `/o/[code]` | The customer's phone: Paytm-style offer with Redeem and Stop offers |
 
+## Edge cases: lockdowns, outages, no network, can't visit
+
+| Situation | What Pehchaan does | Proof |
+|---|---|---|
+| **City-wide shock** (COVID-style lockdown, floods, bandh) | Paytm's network sees ≥ 50% of shops drop the same week with no spatial source → classified *city-wide*. The model switches to **business time** (lockdown days count only for the trade that happened), discount offers pause, the agent switches to WhatsApp ordering + delivery. | 34/35 shops, spatial R² 0.00 → city-wide. Worst-week false churn alarms **47 → 3** (`npm run resilience:check`) |
+| **Local shock** (a dark store opens) | Few shops, strong distance pattern → *local*: real churn, win-back offers and the radar. | 6/35 shops, R² 0.71 → local |
+| **Soundbox / network outage** | One shop at zero while peers trade → *outage*: its scores freeze, events backfill with real times when it reconnects. | False alarms **18 → 1** |
+| **No network at the shop** | Offline-first PWA (service worker), churn model runs in the browser, actions queue in an outbox and sync on reconnect; offers are minted on-device and carried inside the QR. | DevTools → Offline → Run agent |
+| **Rural, zero bars** | Ad-hoc local links: offer in the QR (shop → customer), **redeem by sound** (customer → shop, 2-second chirp, open-source [ggwave](https://github.com/ggerganov/ggwave), MIT), store-and-forward sync; offline UPI rails (UPI Lite X, UPI 123PAY) count as visits when they settle. | Tested: chirp decoded in-browser → win moment |
+| **Customer can't come in** | "Order on WhatsApp" on every offer; orders arrive on `/app/orders`, are matched to the customer, priced (Kannada / Hindi / English), paid by a UPI deep link, and **count as a visit**. Free: wa.me links + UPI links; optional WhatsApp Cloud API webhook (`/api/whatsapp`) on Meta's free test number, replies free inside the 24-hour window. | Simulator + Cloud API payload tested |
+
 ## Live QR loop (show it to mentors)
 
 1. Open `/app/winback` on the laptop and press **Run agent**. A QR appears in the Paytm notification card.

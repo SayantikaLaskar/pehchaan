@@ -5,7 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Bell, BrainCircuit, ChevronsUpDown, FileUp, HeartHandshake, IndianRupee, LayoutDashboard, Speaker, Radar, Search, Send, Settings, ShieldCheck, UserRoundX, Users } from "lucide-react";
+import { Activity, Bell, BrainCircuit, ChevronsUpDown, FileUp, HeartHandshake, IndianRupee, LayoutDashboard, MessageCircle, Speaker, Radar, Search, Send, Settings, ShieldCheck, UserRoundX, Users } from "lucide-react";
+import { NetBadge } from "@/components/NetBadge";
 import { useApp } from "@/components/Providers";
 import { LiveLoop } from "@/components/LiveLoop";
 import { LANGS } from "@/lib/pehchaan/i18n";
@@ -20,12 +21,14 @@ const NAV = [
     { href: "/app", label: "Today", icon: LayoutDashboard },
     { href: "/app/customers", label: "Customers", icon: Users },
     { href: "/app/winback", label: "Win-back agent", icon: Send, badge: "winback" },
+    { href: "/app/orders", label: "WhatsApp orders", icon: MessageCircle },
     { href: "/app/model", label: "How it predicts", icon: BrainCircuit },
     { href: "/app/import", label: "Your data", icon: FileUp },
     { href: "/app/trust", label: "Trust centre", icon: ShieldCheck },
   ] },
   { group: "Paytm network", items: [
     { href: "/app/radar", label: "Neighbourhood radar", icon: Radar, badge: "radar" },
+    { href: "/app/resilience", label: "Shocks & offline", icon: Activity },
     { href: "/app/business", label: "Business case", icon: IndianRupee },
   ] },
 ];
@@ -35,6 +38,8 @@ const TITLES: Record<string, [string, string]> = {
   "/app/customers": ["Customers", "Every regular, recognised from their UPI payments — and how likely they are to come back."],
   "/app/winback": ["Win-back agent", "Picks who to bring back, writes to them in Kannada, and tracks who returns."],
   "/app/model": ["How it predicts", "The churn model behind every number — and how it scored on months it never saw."],
+  "/app/orders": ["WhatsApp orders", "When customers can't come to the counter — they order on WhatsApp, pay by UPI, and still count as regulars."],
+  "/app/resilience": ["Shocks & offline", "Lockdowns, outages and no network — telling them apart from real churn, and staying useful through them."],
   "/app/radar": ["Neighbourhood radar", "Paytm view · regulars dropping off at many shops at once, and where it's coming from."],
   "/app/import": ["Your data", "Upload a Paytm payment export and see your own customers scored — in your browser."],
   "/app/business": ["Business case", "What Pehchaan is worth to Paytm — every assumption on the table."],
@@ -117,6 +122,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Search size={15} /><span>Search customers, pages…</span><span className="kbd">⌘K</span>
           </button>
           <div className={s.topRight}>
+            <NetBadge />
             <div className="seg" role="group" aria-label="Soundbox language">
               {LANGS.map((l) => <button key={l.k} aria-pressed={lang === l.k} onClick={() => setLang(l.k)}>{l.k === "en" ? "EN" : l.label}</button>)}
             </div>
