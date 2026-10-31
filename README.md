@@ -2,10 +2,10 @@
 
 Customer intelligence for Paytm merchants, built from the UPI payments they already receive.
 
-**Live demo:** https://pehchaan-sigma.vercel.app · **Pitch deck (PDF):** [docs/Pehchaan-Pitch-Deck.pdf](docs/Pehchaan-Pitch-Deck.pdf)
+**Live demo:** https://pehchaan-sigma.vercel.app · **Pitch deck (PDF):** [docs/Pehchaan-Pitch-Deck.pdf](docs/Pehchaan-Pitch-Deck.pdf) · **Demo video:** [docs/Pehchaan-Demo.mp4](docs/Pehchaan-Demo.mp4)
 
 - **Recognise:** every Soundbox payment (payer name + UPI ID) becomes a customer profile.
-- **Predict:** a probabilistic churn model (BG/NBD + Gamma-Gamma) scores each customer's chance of still being a regular, their expected visits, and their 90-day value.
+- **Predict:** a probabilistic churn model (MBG/NBD + Gamma-Gamma, chosen over BG/NBD and simple rules in an out-of-sample comparison) scores each customer's chance of still being a regular, their expected visits, and their 90-day value.
 - **Act:** a win-back agent picks who's worth an offer, writes to them in Kannada (Gemini), sends it through the Paytm app, and recognises them on the Soundbox when they return (Sarvam voice).
 - **See the city (Paytm view):** when regulars leave many shops in the same week, the network triangulates the cause, e.g. a new quick-commerce dark store.
 
@@ -28,7 +28,8 @@ npm run validate:cdnow  # fit BG/NBD on real CDNOW data and compare with the pub
 | `GEMINI_API_KEY` | aistudio.google.com | Writes win-back messages and the morning brief | Kannada templates |
 | `GEMINI_MODEL` / `GEMINI_THINKING` | optional | Default `gemini-3.5-flash-lite` (falls back to `gemini-3.6-flash` on quota), thinking `low` | — |
 | `SARVAM_API_KEY` | dashboard.sarvam.ai | Soundbox voice in Kannada / Hindi / English (Bulbul v3) and spoken questions (Saaras v4) | Browser voice; tap-to-ask questions |
-| `UPSTASH_REDIS_REST_URL` / `_TOKEN` (or `KV_REST_API_URL` / `_TOKEN`) | Vercel → Storage → Upstash Redis | Live phone loop: offer links, redemptions and opt-outs shared across servers | In-memory store (works locally only) |
+| `MONGODB_URI` (+ optional `MONGODB_DB`, default `pehchaan`) | MongoDB Atlas free tier | Live phone loop: offer links, opens, redemptions and opt-outs shared across servers (offers expire after 7 days) | Upstash if set, else in-memory (works locally only) |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN` (or `KV_REST_API_URL` / `_TOKEN`) | Vercel → Storage → Upstash Redis | Alternative store for the live loop | In-memory store |
 
 Every Gemini call is cached and raced against a timeout, falling back to a template, so the demo never stalls on the free tier.
 
@@ -38,7 +39,8 @@ All numbers come from a deterministic simulation of one HSR Layout kirana: 420 c
 
 | Check | Result |
 |---|---|
-| Backtest: train to 1 Jun, predict 1 Jun–15 Aug | 2,891 predicted vs 2,899 actual visits (−0.3%) |
+| Backtest: train to 1 Jun, predict 1 Jun–15 Aug | 2,882 predicted vs 2,899 actual visits (−0.6%) |
+| Who-left ranking (AUC, `npx tsx scripts/compare-models.ts`) | 0.95 on the shop · 0.77 on real CDNOW data (plain BG/NBD: 0.32 on CDNOW) |
 | Per-customer correlation | 0.92 |
 | Top 10% of customers by model | made 41% of holdout visits |
 | Visits vs expectation after the opening | −47% within 500 m · −19% at 0.5–1 km · ~0% beyond 1 km |
@@ -62,6 +64,14 @@ The LLM never decides who or how much. It only writes the words. The win-back ag
 | `/app/business` | Business case: interactive calculator of value to Paytm and to one merchant |
 | `/kiosk` | Full-screen Soundbox: live payments greeted aloud, voice questions, Kannada / Hindi / English |
 | `/o/[code]` | The customer's phone: Paytm-style offer with Redeem and Stop offers |
+
+## Live QR loop (show it to mentors)
+
+1. Open `/app/winback` on the laptop and press **Run agent**. A QR appears in the Paytm notification card.
+2. Scan it with any phone: the offer page opens and the dashboard shows **Opened on a phone** within ~2 s.
+3. Tap **Redeem at the store**: the laptop plays the win moment and the Soundbox greets the customer by name. **Stop offers** records a consent withdrawal.
+
+On Vercel this needs `MONGODB_URI` set so every serverless instance shares the same events.
 
 ## 3-minute demo
 
