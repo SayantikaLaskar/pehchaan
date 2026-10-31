@@ -5,16 +5,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ArrowRight, BellRing, Play, QrCode, Volume2 } from "lucide-react";
+import { AskSoundbox } from "@/components/AskSoundbox";
 import { CountUp } from "@/components/motion";
 import { Composition, CumulativeChart } from "@/components/charts";
 import { useApp } from "@/components/Providers";
 import { SEGMENTS, type Segment } from "@/lib/pehchaan/model";
+import { LANGS, lines } from "@/lib/pehchaan/i18n";
 import { L, gapText, inr, useLive } from "@/lib/pehchaan/use";
 import type { Brief } from "@/lib/ai";
 import s from "./overview.module.css";
 
 export default function Today() {
-  const { speak, speaking, sent, markReturned } = useApp();
+  const { speak, speaking, sent, markReturned, lang } = useApp();
   const { scored, winnable, shock, expectedToday, net } = useLive();
   const [brief, setBrief] = useState<Brief | null>(null);
   const [toast, setToast] = useState<{ name: string; days: number } | null>(null);
@@ -47,7 +49,7 @@ export default function Today() {
     const first = counter.c.name.split(" ")[0];
     setToast({ name: counter.c.name, days });
     if (sent[counter.c.id]) markReturned(counter.c.id, true);
-    speak(`${first} ಅವರು ${days} ದಿನಗಳ ನಂತರ ಮತ್ತೆ ಬಂದಿದ್ದಾರೆ. ಸ್ವಾಗತಿಸಿ!`, `${first} is back after ${days} days. Give them a warm welcome!`);
+    speak(lines.back(first, days));
   };
   useGSAP(() => {
     if (toast && toastRef.current) gsap.fromTo(toastRef.current, { y: 30, autoAlpha: 0, scale: 0.96 }, { y: 0, autoAlpha: 1, scale: 1, duration: 0.6, ease: "expo.out" });
@@ -92,13 +94,14 @@ export default function Today() {
         <div className={`card ${s.brief}`} data-in>
           <div className={s.briefHead}>
             <span className={s.sbx}><Volume2 size={14} /></span>
-            <span><b>Morning brief</b><small>Soundbox · 7:30 am · ಕನ್ನಡ</small></span>
+            <span><b>Morning brief</b><small>Soundbox · 7:30 am · {LANGS.find((l) => l.k === lang)?.label}</small></span>
           </div>
-          <div className={`kn ${s.briefKn}`}>{brief?.kn ?? <span className="skeleton" style={{ display: "block", height: 96 }} />}</div>
-          <p className={s.briefEn}>{brief?.en}</p>
-          <button className="btn" disabled={!brief || speaking} onClick={() => brief && speak(brief.kn, brief.en)}>
+          <div className={`kn ${s.briefKn}`}>{brief ? (brief[lang] || brief.en) : <span className="skeleton" style={{ display: "block", height: 96 }} />}</div>
+          {lang !== "en" && <p className={s.briefEn}>{brief?.en}</p>}
+          <button className="btn" disabled={!brief || speaking} onClick={() => brief && speak(brief)}>
             <Play size={14} />{speaking ? "Speaking…" : "Play on Soundbox"}
           </button>
+          <div className={s.askWrap}><span className={s.askLabel}>Ask the Soundbox</span><AskSoundbox dark /></div>
         </div>
       </section>
 

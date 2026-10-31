@@ -1,32 +1,36 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import QRCode from "qrcode";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Bot, Check, CircleDashed, Loader2, Play, RotateCcw, Send, Sparkles } from "lucide-react";
+import { Bot, BrainCircuit, Check, CircleDashed, Loader2, Play, RotateCcw, Send, Sparkles } from "lucide-react";
 import { useApp } from "@/components/Providers";
 import { rng } from "@/lib/pehchaan/sim";
 import type { Scored } from "@/lib/pehchaan/model";
 import type { Message } from "@/lib/ai";
 import { llmPayload } from "@/lib/pehchaan/consent";
+import { ARMS, arms, pick } from "@/lib/pehchaan/bandit";
 import { L, favourite, gapText, inr, useLive } from "@/lib/pehchaan/use";
 import s from "./winback.module.css";
 
-// Assumed response curve: customers who left recently and were frequent respond best.
-const pReturn = (x: Scored) => Math.min(0.6, 0.1 + 0.45 * x.pAlive + 0.15 * Math.min(1, x.rfm.x / 40));
+const MARGIN = 0.15; // kirana gross margin on recovered spend
+const WEEK_SEED = 202644; // this week's Thompson draw — stable across reloads
+const valueOf = (xs: Scored[]) => (xs.slice(0, 8).reduce((a, x) => a + x.monthly, 0) / Math.max(1, Math.min(8, xs.length))) * MARGIN;
 
 type Step = { text: string; state: "run" | "ok" };
 
 export default function Winback() {
-  const { sent, markSent, markReturned, reset, speak, speaking, status } = useApp();
+  const { sent, markSent, markReturned, reset, speak, speaking, status, lang } = useApp();
   const { winnable, eligible } = useLive();
-  const [offer, setOffer] = useState(30);
+  const [offer, setOffer] = useState<number>(() => { const v = valueOf(eligible); return pick(arms([], v), v, WEEK_SEED); });
   const [size, setSize] = useState(8);
   const [msgs, setMsgs] = useState<Record<string, Message>>({});
   const [steps, setSteps] = useState<Step[]>([]);
   const [running, setRunning] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const scope = useRef<HTMLDivElement>(null);
+  const [qr, setQr] = useState<string | null>(null);
 
   // Only opted-in customers, and nobody who already got an offer this month.
   const pool = eligible.filter((x) => !sent[x.c.id]);
@@ -37,11 +41,20 @@ export default function Winback() {
   const pending = campaign.filter((x) => sent[x.c.id].returned == null);
   const resolved = campaign.length - pending.length;
 
+  // What the agent has learned about each offer size, from history plus every resolved offer.
+  const value = valueOf(pool.length ? pool : eligible);
+  const outcomes = Object.values(sent).filter((v) => v.returned != null).map((v) => ({ offer: v.offer, returned: !!v.returned }));
+  const states = useMemo(() => arms(outcomes, value), [JSON.stringify(outcomes), value]); // eslint-disable-line react-hooks/exhaustive-deps
+  const agentPick = useMemo(() => pick(states, value, WEEK_SEED + outcomes.length), [states, value, outcomes.length]);
+  const rate = states.find((a) => a.arm === offer)?.mean ?? 0.25;
+  // Learned redemption rate for this offer, scaled by how recently the customer was still a regular.
+  const pReturn = (x: Scored) => Math.min(0.9, rate * (0.5 + x.pAlive));
+
   const est = useMemo(() => {
     const back = plan.reduce((a, x) => a + pReturn(x), 0);
     const revenue = plan.reduce((a, x) => a + pReturn(x) * x.monthly, 0);
     return { back, revenue, cost: back * offer };
-  }, [plan, offer]);
+  }, [plan, offer, rate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const body = JSON.stringify({ items: plan.map((x) => ({ id: x.c.id, ...llmPayload(x.c.name.split(" ")[0], gapText(x.avgGap), Math.round(x.lastSeen), favourite(x.c.archetype), offer) })) });
   // One call writes the whole plan; start it while the owner reviews, so "Run agent" is instant.
@@ -64,8 +77,10 @@ export default function Winback() {
     log(`Attaching ₹${offer} store offer, redeemable only at Sri Manjunatha Stores`);
     await wait(700);
     log("Delivering as Paytm app notifications");
+    const items = plan.map((x) => ({ id: x.c.id, first: x.c.name.split(" ")[0], kn: written[x.c.id]?.kn ?? "", hi: written[x.c.id]?.hi ?? "", en: written[x.c.id]?.en ?? "", lang, offer }));
+    const { codes } = await fetch("/api/offers", { method: "POST", body: JSON.stringify({ items }) }).then((r) => r.json()).catch(() => ({ codes: {} }));
     await wait(900);
-    markSent(plan.map((x) => x.c.id), offer, Object.fromEntries(plan.map((x) => [x.c.id, `P(regular) ${Math.round(x.pAlive * 100)}% (was ${Math.round(x.pAlive30 * 100)}%), ${Math.round(x.lastSeen)}d since last visit`])));
+    markSent(plan.map((x) => x.c.id), offer, Object.fromEntries(plan.map((x) => [x.c.id, `P(regular) ${Math.round(x.pAlive * 100)}% (was ${Math.round(x.pAlive30 * 100)}%), ${Math.round(x.lastSeen)}d since last visit`])), codes);
     log(`Sent. Watching the Soundbox for their next payment.`);
     await wait(400);
     setSteps((p) => p.map((x) => ({ ...x, state: "ok" })));
@@ -85,7 +100,12 @@ export default function Winback() {
   }, { scope, dependencies: [steps.length] });
 
   const pv = preview ? winnable.find((x) => x.c.id === preview) : null;
+  const code = pv ? sent[pv.c.id]?.code : undefined;
   const pm = preview ? msgs[preview] : null;
+  useEffect(() => {
+    if (!code) { setQr(null); return; }
+    QRCode.toDataURL(`${window.location.origin}/o/${code}`, { margin: 1, width: 240, color: { dark: "#06132b", light: "#ffffff" } }).then(setQr);
+  }, [code]);
   const recovered = returned.reduce((a, x) => a + x.monthly, 0);
 
   return (
@@ -108,7 +128,7 @@ export default function Winback() {
           </div>
           <div className={s.controls}>
             <label>Offer per customer
-              <div className="seg">{[20, 30, 50].map((v) => <button key={v} aria-pressed={offer === v} onClick={() => setOffer(v)}>₹{v}</button>)}</div>
+              <div className="seg">{ARMS.map((v) => <button key={v} aria-pressed={offer === v} onClick={() => setOffer(v)}>₹{v}{v === agentPick ? " ★" : ""}</button>)}</div>
             </label>
             <label>Customers
               <div className="seg">{[5, 8, 12].map((v) => <button key={v} aria-pressed={size === v} onClick={() => setSize(v)}>{v}</button>)}</div>
@@ -132,7 +152,7 @@ export default function Winback() {
             {plan.length === 0 && <p className={s.empty}>Everyone who&apos;s winnable already has an offer. Check results below.</p>}
           </div>
           <div className={s.runBar}>
-            <span className="t3">{noConsent > 0 && <><b>{noConsent} skipped</b> — not opted in to offers. </>}Return likelihood is an assumed response curve, not a trained model — it gets replaced by real redemption data after the first campaigns.</span>
+            <span className="t3">{noConsent > 0 && <><b>{noConsent} skipped</b> — not opted in to offers. </>}Return likelihood = learned redemption rate for ₹{offer} × the customer&apos;s recency. ★ marks the agent&apos;s pick.</span>
             <button className="btn btn-primary" onClick={run} disabled={running || plan.length === 0}>{running ? <Loader2 size={14} className={s.spin} /> : <Send size={14} />}Run agent</button>
           </div>
         </div>
@@ -154,15 +174,47 @@ export default function Winback() {
               {pv ? (
                 <>
                   <b className={s.nTitle}>Sri Manjunatha Stores · ₹{offer} off for you</b>
-                  {pm ? <p className="kn">{pm.kn}</p> : <span className="skeleton" style={{ display: "block", height: 54 }} />}
-                  {pm && <p className={s.nEn}>{pm.en}</p>}
+                  {pm ? <p className="kn">{pm[lang] || pm.en}</p> : <span className="skeleton" style={{ display: "block", height: 54 }} />}
+                  {pm && lang !== "en" && <p className={s.nEn}>{pm.en}</p>}
                 </>
               ) : (
                 <p className={s.nEn}><Sparkles size={13} /> Messages appear here once the agent writes them.</p>
               )}
             </div>
-            {pm && <button className="btn btn-secondary btn-sm" disabled={speaking} onClick={() => speak(pm.kn, pm.en)}><Play size={13} />{speaking ? "Speaking…" : "Hear it"}</button>}
+            {pm && <button className="btn btn-secondary btn-sm" disabled={speaking} onClick={() => speak(pm)}><Play size={13} />{speaking ? "Speaking…" : "Hear it"}</button>}
+            {qr && pv && sent[pv.c.id]?.returned == null && (
+              <div className={s.qr}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={qr} alt={`QR code for ${pv.c.name}'s offer`} />
+                <span><b>Be {pv.c.name.split(" ")[0]} — scan to get the offer</b><small>Redeem on your phone and watch this dashboard</small></span>
+              </div>
+            )}
           </div>
+        </div>
+      </section>
+
+      <section className="card" data-in>
+        <div className="card-head">
+          <div>
+            <div className="card-title">What the agent has learned about offers</div>
+            <div className="card-sub">Thompson sampling over offer sizes · {states.reduce((a, x) => a + x.s + x.f - 2, 0)} offers so far (earlier campaigns + this demo) · a won-back regular is worth ≈ {inr(value)}/month in margin</div>
+          </div>
+          <span className="badge badge-info"><BrainCircuit />Picks ₹{agentPick} this week</span>
+        </div>
+        <div className={s.arms}>
+          {states.map((a) => (
+            <div key={a.arm} className={`${s.arm} ${a.arm === agentPick ? s.armOn : ""}`}>
+              <b className="mono">₹{a.arm}</b>
+              <div className={s.track}>
+                <span className={s.range} style={{ left: `${a.lo * 100}%`, width: `${(a.hi - a.lo) * 100}%` }} />
+                <span className={s.mean} style={{ left: `${a.mean * 100}%` }} />
+              </div>
+              <span className="mono">{Math.round(a.mean * 100)}% <small>({Math.round(a.lo * 100)}–{Math.round(a.hi * 100)}%)</small></span>
+              <span className="mono">{a.s + a.f - 2} sent</span>
+              <span className={`mono ${a.profit >= 0 ? s.good : ""}`}>{a.profit >= 0 ? "+" : "−"}{inr(Math.abs(a.profit))}/offer</span>
+            </div>
+          ))}
+          <p className={s.armNote}>Bar = 90% credible range of the redemption rate; dot = best estimate. Every redemption — including from a customer&apos;s phone — narrows these, and the agent shifts toward the most profitable offer while still exploring.</p>
         </div>
       </section>
 

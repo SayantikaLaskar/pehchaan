@@ -44,7 +44,7 @@ export function rng(seed: number) {
 }
 
 // Marsaglia–Tsang gamma sampler
-function gamma(r: () => number, shape: number, scale: number): number {
+export function gamma(r: () => number, shape: number, scale: number): number {
   if (shape < 1) return gamma(r, shape + 1, scale) * Math.pow(r(), 1 / shape);
   const d = shape - 1 / 3, c = 1 / Math.sqrt(9 * d);
   for (;;) {

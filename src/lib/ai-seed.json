@@ -1,112 +1,49 @@
 {
- "msgs:[{\"id\":\"C076\",\"name\":\"Aisha Prasad\",\"usual\":\"every 7 days\",\"lastSeen\":48,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C026\",\"name\":\"Rekha Khan\",\"usual\":\"every 7 days\",\"lastSeen\":53,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C300\",\"name\":\"Arjun Naidu\",\"usual\":\"every 3 days\",\"lastSeen\":37,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C096\",\"name\":\"Jyothi Menon\",\"usual\":\"every 6 days\",\"lastSeen\":50,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C261\",\"name\":\"Vikram Patil\",\"usual\":\"weekly\",\"lastSeen\":62,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C049\",\"name\":\"Deepa Murthy\",\"usual\":\"every 5 days\",\"lastSeen\":31,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C327\",\"name\":\"Swati Hegde\",\"usual\":\"every 3 days\",\"lastSeen\":18,\"favourite\":\"milk and vegetables\",\"offer\":30},{\"id\":\"C302\",\"name\":\"Karthik Sharma\",\"usual\":\"every 2 days\",\"lastSeen\":53,\"favourite\":\"vegetables\",\"offer\":30}]": {
+ "msgs:[{\"id\":\"C076\",\"name\":\"Aisha\",\"usual\":\"every 7 days\",\"lastSeen\":48,\"favourite\":\"groceries\",\"offer\":50},{\"id\":\"C026\",\"name\":\"Rekha\",\"usual\":\"every 7 days\",\"lastSeen\":53,\"favourite\":\"groceries\",\"offer\":50},{\"id\":\"C300\",\"name\":\"Arjun\",\"usual\":\"every 3 days\",\"lastSeen\":37,\"favourite\":\"vegetables\",\"offer\":50},{\"id\":\"C096\",\"name\":\"Jyothi\",\"usual\":\"every 6 days\",\"lastSeen\":50,\"favourite\":\"vegetables\",\"offer\":50},{\"id\":\"C049\",\"name\":\"Deepa\",\"usual\":\"every 5 days\",\"lastSeen\":31,\"favourite\":\"vegetables\",\"offer\":50},{\"id\":\"C302\",\"name\":\"Karthik\",\"usual\":\"every 2 days\",\"lastSeen\":53,\"favourite\":\"vegetables\",\"offer\":50},{\"id\":\"C246\",\"name\":\"Manoj\",\"usual\":\"every 7 days\",\"lastSeen\":85,\"favourite\":\"groceries\",\"offer\":50},{\"id\":\"C004\",\"name\":\"Varun\",\"usual\":\"every 3 days\",\"lastSeen\":78,\"favourite\":\"vegetables\",\"offer\":50}]": {
   "C076": {
-   "kn": "ನಮಸ್ಕಾರ ಆಶಾ ಮೇಡಮ್, ಅಂಗಡಿಗೆ ಬಂದು ಬಹಳ ದಿನವಾಯಿತು. ನಿಮ್ಮ ದಿನಸಿ ಸಾಮಾನುಗಳು ಖಾಲಿಯಾಗಿರಬೇಕು. ಒಮ್ಮೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ ಮೂವತ್ತು ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ.",
-   "en": "Hello Aisha, it’s been a while since you visited. Your grocery stock must be over. Drop by, and I will give you thirty rupees off on your bill."
+   "kn": "ನಮಸ್ಕಾರ ಆಶಾ, ದಿನಸಿ ತಗೊಂಡು ತುಂಬಾ ದಿನ ಆಯ್ತು. ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 50 ರೂ ತಗ್ಗಿಸುತ್ತೇನೆ. ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್, ಎಚ್ ಎಸ್ ಆರ್ ಲೇಔಟ್.",
+   "hi": "नमस्ते आशा, किराने का सामान लिए बहुत दिन हो गए। दुकान आइए, आपके बिल पर 50 रुपये की छूट मिलेगी। मंजूनाथ स्टोर्स, एचएसआर लेआउट।",
+   "en": "Hello Aisha, it has been a while since you bought groceries. Drop by the store, I will take 50 rupees off your bill. Manjunatha Stores, HSR Layout."
   },
   "C026": {
-   "kn": "ರೇಖಾ ಅಮ್ಮ, ವಾರಕ್ಕೊಮ್ಮೆ ಬರ್ತಿದ್ರಿ, ಈ ತಿಂಗಳು ಕಾಣ್ತಿಲ್ಲ. ನಿಮ್ಮ ದಿನಸಿ ಸಾಮಾನುಗಳು ರೆಡಿಯಿವೆ. ಬನ್ನಿ, ಈ ಸಲ ಮೂವತ್ತು ರೂಪಾಯಿ ಡಿಸ್ಕೌಂಟ್ ಮಾಡಿಕೊಡ್ತೀನಿ.",
-   "en": "Rekha, you used to visit weekly, but haven't seen you this month. Your groceries are ready. Come by, and I'll give you a thirty rupees discount this time."
+   "kn": "ನಮಸ್ಕಾರ ರೇಖಾ, ದಿನಸಿ ತಗೊಂಡು ತುಂಬಾ ದಿನ ಆಯ್ತು. ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 50 ರೂ ತಗ್ಗಿಸುತ್ತೇನೆ. ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್, ಎಚ್ ಎಸ್ ಆರ್ ಲೇಔಟ್.",
+   "hi": "नमस्ते रेखा, किराने का सामान लिए बहुत दिन हो गए। दुकान आइए, आपके बिल पर 50 रुपये की छूट मिलेगी। मंजूनाथ स्टोर्स, एचएसआर लेआउट।",
+   "en": "Hello Rekha, it has been a while since you bought groceries. Drop by the store, I will take 50 rupees off your bill. Manjunatha Stores, HSR Layout."
   },
   "C300": {
-   "kn": "ಅರ್ಜುನ್ ಸರ್, ಹತ್ತು ದಿನವಾಯಿತು ನೀವು ಕಾಯಿಪಲ್ಯ ತಗೊಳ್ಳಲು ಬಂದಿಲ್ಲ. ಫ್ರೆಶ್ ತರಕಾರಿಗಳು ಬಂದಿವೆ. ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ ಮೂವತ್ತು ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ.",
-   "en": "Arjun, it’s been ten days since you came for vegetables. Fresh stock has arrived. Drop in, and I will knock thirty rupees off your bill."
+   "kn": "ನಮಸ್ಕಾರ ಅರ್ಜುನ್, ತರಕಾರಿ ತಗೊಂಡು ತುಂಬಾ ದಿನ ಆಯ್ತು. ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 50 ರೂ ತಗ್ಗಿಸುತ್ತೇನೆ. ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್, ಎಚ್ ಎಸ್ ಆರ್ ಲೇಔಟ್.",
+   "hi": "नमस्ते अर्जुन, सब्ज़ियां लिए बहुत दिन हो गए। दुकान आइए, आपके बिल पर 50 रुपये की छूट मिलेगी। मंजूनाथ स्टोर्स, एचएसआर लेआउट।",
+   "en": "Hello Arjun, it has been a while since you bought vegetables. Drop by the store, I will take 50 rupees off your bill. Manjunatha Stores, HSR Layout."
   },
   "C096": {
-   "kn": "ಜೋತಿ ಅವರೇ, ಬಹಳ ದಿನವಾಯಿತು ನಮ್ಮ ಅಂಗಡಿ ಕಡೆ ಬಂದಿಲ್ಲ. ಫ್ರೆಶ್ ತರಕಾರಿಗಳು ಬಂದಿವೆ. ಬನ್ನಿ, ನಿಮ್ಮ ಖರೀದಿಗೆ ಮೂವತ್ತು ರೂಪಾಯಿ ವಿನಾಯಿತಿ ನೀಡುತ್ತೇನೆ.",
-   "en": "Jyothi, it’s been a long time since you visited our store. Fresh vegetables are in. Come over, and I'll give you a thirty rupees waiver on your purchase."
-  },
-  "C261": {
-   "kn": "ವಿಕ್ರಮ್ ಅಣ್ಣ, ನಿಮ್ಮ ಮಾಸಿಕ ದಿನಸಿ ತಗೊಳ್ಳುವ ಸಮಯವಾಯಿತು. ಅಂಗಡಿ ಕಡೆ ಬಂದು ಬಹಳ ದಿನವಾಯಿತು. ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ನಲ್ಲಿ ಮೂವತ್ತು ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡಿಕೊಡ್ತೀನಿ.",
-   "en": "Vikram, it’s time for your monthly groceries and it's been a while. Drop by the store, and I will reduce thirty rupees from your bill."
+   "kn": "ನಮಸ್ಕಾರ ಜ್ಯೋತಿ, ತರಕಾರಿ ತಗೊಂಡು ತುಂಬಾ ದಿನ ಆಯ್ತು. ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 50 ರೂ ತಗ್ಗಿಸುತ್ತೇನೆ. ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್, ಎಚ್ ಎಸ್ ಆರ್ ಲೇಔಟ್.",
+   "hi": "नमस्ते ज्योति, सब्ज़ियां लिए बहुत दिन हो गए। दुकान आइए, आपके बिल पर 50 रुपये की छूट मिलेगी। मंजूनाथ स्टोर्स, एचएसआर लेआउट।",
+   "en": "Hello Jyothi, it has been a while since you bought vegetables. Drop by the store, I will take 50 rupees off your bill. Manjunatha Stores, HSR Layout."
   },
   "C049": {
-   "kn": "ದೀಪಾ ಮೇಡಮ್, ಇತ್ತೀಚೆಗೆ ಕಾಯಿಪಲ್ಯ ತಗೊಳ್ಳಲು ಬರ್ತಿಲ್ಲ. ಎಲ್ಲರಿಗಿಂತ ಮೊದಲು ಫ್ರೆಶ್ ತರಕಾರಿ ಕೊಡ್ತಿದ್ನಲ್ಲ. ಬನ್ನಿ, ಈ ಸಲ ಮೂವತ್ತು ರೂಪಾಯಿ ಆಫರ್ ಇದೆ.",
-   "en": "Deepa, you haven't been coming for vegetables lately. I always saved the freshest stock for you. Drop by, there is a thirty rupees offer today."
-  },
-  "C327": {
-   "kn": "ಸ್ವಾತಿ ಅವರೇ, ಹಾಲು ಮತ್ತು ತರಕಾರಿ ತಗೊಳ್ಳಲು ಬಂದು ಕೆಲವು ದಿನವಾಯಿತು. ಹೊಸ ಸ್ಟಾಕ್ ಬಂದಿದೆ. ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ ಮೂವತ್ತು ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ.",
-   "en": "Swati, it’s been a few days since you picked up milk and vegetables. New stock is in. Come by, and I will deduct thirty rupees from your bill."
+   "kn": "ನಮಸ್ಕಾರ ದೀಪಾ, ತರಕಾರಿ ತಗೊಂಡು ತುಂಬಾ ದಿನ ಆಯ್ತು. ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 50 ರೂ ತಗ್ಗಿಸುತ್ತೇನೆ. ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್, ಎಚ್ ಎಸ್ ಆರ್ ಲೇಔಟ್.",
+   "hi": "नमस्ते दीपा, सब्ज़ियां लिए बहुत दिन हो गए। दुकान आइए, आपके बिल पर 50 रुपये की छूट मिलेगी। मंजूनाथ स्टोर्स, एचएसआर लेआउट।",
+   "en": "Hello Deepa, it has been a while since you bought vegetables. Drop by the store, I will take 50 rupees off your bill. Manjunatha Stores, HSR Layout."
   },
   "C302": {
-   "kn": "ಕಾರ್ತಿಕ್ ಸರ್, ಎರಡು ದಿನಕ್ಕೊಮ್ಮೆ ಬರ್ತಿದ್ರಿ, ಈಗ ಕಾಣ್ತಿಲ್ಲ. ಫ್ರೆಶ್ ಕಾಯಿಪಲ್ಯ ಕಾಯ್ತಿದೆ. ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ ಮೂವತ್ತು ರೂಪಾಯಿ ಡಿಸ್ಕೌಂಟ್ ಮಾಡಿಕೊಡ್ತೀನಿ.",
-   "en": "Karthik, you used to visit every two days, but I haven't seen you. Fresh vegetables are waiting. Drop in, and I'll give you a thirty rupees discount."
-  }
- },
- "msgs:[{\"id\":\"C246\",\"name\":\"Manoj Khan\",\"usual\":\"every 7 days\",\"lastSeen\":85,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C004\",\"name\":\"Varun Hegde\",\"usual\":\"every 3 days\",\"lastSeen\":78,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C283\",\"name\":\"Abhishek Singh\",\"usual\":\"every 5 days\",\"lastSeen\":29,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C147\",\"name\":\"Anil Bhat\",\"usual\":\"every 6 days\",\"lastSeen\":33,\"favourite\":\"milk and vegetables\",\"offer\":30},{\"id\":\"C356\",\"name\":\"Vinay Nair\",\"usual\":\"every 6 days\",\"lastSeen\":56,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C237\",\"name\":\"Suresh Menon\",\"usual\":\"weekly\",\"lastSeen\":54,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C393\",\"name\":\"Harish Patil\",\"usual\":\"weekly\",\"lastSeen\":54,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C092\",\"name\":\"Vinay Rao\",\"usual\":\"every 5 days\",\"lastSeen\":47,\"favourite\":\"vegetables\",\"offer\":30}]": {
-  "C246": {
-   "kn": "ಮನೋಜ್, ಮೂರು ತಿಂಗಳಿಂದ ಅಂಗಡಿ ಕಡೆ ಬಂದಿಲ್ಲ. ದಿನಸಿ ಖಾಲಿಯಾಗಿದೆ ಅಲ್ವಾ? ಈ ವಾರ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 30 ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ. - ಮಂಜುನಾಥ್, ಎಚ್.ಎಸ್.ಆರ್. लेಔಟ್.",
-   "en": "Manoj, haven't seen you in three months. Groceries must be over, right? Drop by this week and I'll take 30 rupees off your bill. - Manjunath, HSR Layout."
-  },
-  "C004": {
-   "kn": "ವರುಣ್, ಇತ್ತೀಚಿಗೆ ತರಕಾರಿ ತಗೊಳ್ಳಲು ಬರ್ತಿಲ್ಲ. ಎಲ್ಲರಿಗಿಂತ ಹಳೆಯ ಗ್ರಾಹಕರು ನೀವು. ಈ ಬಾರಿ ಬಂದರೆ ನಿಮ್ಮ ಬಿಲ್‌ನಲ್ಲಿ 30 ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ. - ಮಂಜುನಾಥ್, ಎಚ್.ಎಸ್.ಆರ್. ಲೇಔಟ್.",
-   "en": "Varun, you haven't been coming for vegetables lately. You're one of my oldest customers. Come this time and I'll knock 30 rupees off your bill. - Manjunath, HSR Layout."
-  },
-  "C283": {
-   "kn": "ಅಭಿಷೇಕ್, ಹತ್ತು ದಿನದಿಂದ ನಿಮ್ಮ ಮುಖ ನೋಡಲಿಲ್ಲ. ತಾಜಾ ತರಕಾರಿಗಳು ಬಂದಿವೆ. ಈ ಬಾರಿ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್‌ನಲ್ಲಿ 30 ರೂಪಾಯಿ ಕಡಿತ ಮಾಡುತ್ತೇನೆ. - ಮಂಜುನಾಥ್, ಎಚ್.ಎಸ್.ಆರ್. ಲೇಔಟ್.",
-   "en": "Abhishek, haven't seen you in ten days. Fresh vegetables have arrived. Drop by this time and I'll reduce your bill by 30 rupees. - Manjunath, HSR Layout."
-  },
-  "C147": {
-   "kn": "ಅನಿಲ್, ಹಾಲಿನ ಪ್ಯಾಕೆಟ್ ಮತ್ತು ತರಕಾರಿಗೆ ಬರೋದು ನಿಲ್ಲಿಸಿಬಿட்டಿದ್ದೀರಿ. ಎಲ್ಲ ಸೌಖ್ಯ ತಾನೇ? ಈ ವಾರ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 30 ರೂಪಾಯಿ ಕಳಿತೀನಿ. - ಮಂಜುನಾಥ್, ಎಚ್.ಎಸ್.ಆರ್. ಲೇಔಟ್.",
-   "en": "Anil, you've stopped coming for milk and vegetables. Hope all is well? Drop by this week and I'll cut 30 rupees from your bill. - Manjunath, HSR Layout."
-  },
-  "C356": {
-   "kn": "ವಿನಯ್, ಬಹಳ ದಿನವಾಯಿತು ಅಂಗಡಿಗೆ ಬಂದು. ತರಕಾರಿಗಳೆಲ್ಲ ತಾಜಾವಾಗಿವೆ. ಈ ಬಾರಿ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್‌ನಲ್ಲಿ 30 ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ. - ಮಂಜುನಾಥ್, ಎಚ್.ಎಸ್.ಆರ್. ಲೇಔಟ್.",
-   "en": "Vinay, it's been a long time since you visited the shop. Vegetables are all fresh. Come this time and I'll take 30 rupees off your bill. - Manjunath, HSR Layout."
-  },
-  "C237": {
-   "kn": "ಸುರೇಶ್, ತಿಂಗಳುಗಟ್ಟಲೆ ನಿಮ್ಮ ಸುಳಿವಿಲ್ಲ. ದಿನಸಿ ಸಾಮಾನುಗಳು ಬೇಕಿದ್ದರೆ ಹೇಳಿ. ಈ ವಾರ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 30 ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ. - ಮಂಜುನಾಥ್, ಎಚ್.ಎಸ್.ಆರ್. ಲೇಔಟ್.",
-   "en": "Suresh, no sign of you for months. Let me know if you need groceries. Drop by this week and I'll reduce 30 rupees on your bill. - Manjunath, HSR Layout."
-  },
-  "C393": {
-   "kn": "ಹರೀಶ್, ವಾರಕ್ಕೊಮ್ಮೆ ಬರ್ತಿದ್ದವರು ಈಗ ಬರೋದೇ ಬಿಟ್ಟಿದ್ದೀರಿ. ದಿನಸಿ ಖಾಲಿಯಾಗಿದೆ ಅಲ್ವಾ? ಈ ಬಾರಿ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್‌ನಲ್ಲಿ 30 ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ. - ಮಂಜುನಾಥ್, ಎಚ್.ಎಸ್.ಆರ್. ಲೇಔಟ್.",
-   "en": "Harish, you used to come weekly but stopped completely. Groceries must be done, right? Come this time and I'll knock 30 rupees off your bill. - Manjunath, HSR Layout."
-  },
-  "C092": {
-   "kn": "ವಿನಯ್ ರಾವ್, ತರಕಾರಿ ತರಲು ಬಂದು ಬಹಳ ದಿನವಾಯಿತು. ಒಳ್ಳೆಯ ಹಸಿರು ತರಕಾರಿಗಳು ಬಂದಿವೆ. ಈ ವಾರ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 30 ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ. - ಮಂಜುನಾಥ್, ಎಚ್.ಎಸ್.ಆರ್. ಲೇಔಟ್.",
-   "en": "Vinay Rao, it's been many days since you came for vegetables. Good green veggies have arrived. Drop by this week, I'll take 30 rupees off your bill. - Manjunath, HSR Layout."
-  }
- },
- "brief:{\"slipping\":[{\"name\":\"Aisha Prasad\",\"lastSeen\":48,\"usual\":7},{\"name\":\"Rekha Khan\",\"lastSeen\":53,\"usual\":7},{\"name\":\"Arjun Naidu\",\"lastSeen\":37,\"usual\":3}],\"expectedToday\":32,\"revenueAtRisk\":71033,\"areaAlert\":true}": {
-  "kn": "सुप्रभात मंजुनाथ! ಇಂದು ಸುಮಾರು 32 ಗ್ರಾಹಕರು ಬರಬಹುದು. Aisha, Rekha, ಹಾಗು Arjun ಇತ್ತೀಚೆಗೆ ಬಂದಿಲ್ಲ, ಆಫರ್ ಕಳುಹಿಸೇವಾ? ಮಳೆ ಎಚ್ಚರಿಕೆ ಇದೆ, ಎಚ್ಚರ.",
-  "en": "Good morning Manjunath! Expect about 32 customers today. Aisha, Rekha, and Arjun haven't visited lately; shall I send a win-back offer? Area rain alert is active, be careful."
- },
- "msgs:[{\"id\":\"C076\",\"name\":\"Aisha\",\"usual\":\"every 7 days\",\"lastSeen\":48,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C026\",\"name\":\"Rekha\",\"usual\":\"every 7 days\",\"lastSeen\":53,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C300\",\"name\":\"Arjun\",\"usual\":\"every 3 days\",\"lastSeen\":37,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C096\",\"name\":\"Jyothi\",\"usual\":\"every 6 days\",\"lastSeen\":50,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C049\",\"name\":\"Deepa\",\"usual\":\"every 5 days\",\"lastSeen\":31,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C302\",\"name\":\"Karthik\",\"usual\":\"every 2 days\",\"lastSeen\":53,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C246\",\"name\":\"Manoj\",\"usual\":\"every 7 days\",\"lastSeen\":85,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C004\",\"name\":\"Varun\",\"usual\":\"every 3 days\",\"lastSeen\":78,\"favourite\":\"vegetables\",\"offer\":30}]": {
-  "C076": {
-   "kn": "ನಮಸ್ಕಾರ ಆಶಾ, ನಿಮ್ಮ ದಿನಸಿ ತರಲು ತುಂಬಾ ದಿನವಾಯಿತು. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ನಲ್ಲಿ ನಿಮ್ಮ ನೆಚ್ಚಿನ ದಿನಸಿ ವಸ್ತುಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
-   "en": "Hello Aisha, it has been a long time since you came for groceries. Enjoy Rs 30 off on your favourite groceries at Sri Manjunatha Stores."
-  },
-  "C026": {
-   "kn": "ನಮಸ್ಕಾರ ರೇಖಾ, ದಿನಸಿ ತಗೊಂಡು ಬಹಳ ದಿನವಾಯಿತು. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ದಿನಸಿ ಸಾಮಗ್ರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
-   "en": "Hello Rekha, you haven't picked up groceries in a while. Visit Sri Manjunatha Stores for Rs 30 off on your groceries."
-  },
-  "C300": {
-   "kn": "ನಮಸ್ಕಾರ ಅರ್ಜುನ್, ತರಕಾರಿ ತಗೊಂಡು ತುಂಬಾ ದಿನವಾಯಿತು. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ತರಕಾರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
-   "en": "Hello Arjun, it's been days since you bought vegetables. Drop by Sri Manjunatha Stores to get Rs 30 off on vegetables."
-  },
-  "C096": {
-   "kn": "ನಮಸ್ಕಾರ ಜ್ಯೋತಿ, ತರಕಾರಿ ತರಲು ಬರಲಿಲ್ಲ. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ನಲ್ಲಿ ನಿಮ್ಮ ನೆಚ್ಚಿನ ತರಕಾರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
-   "en": "Hello Jyothi, you missed getting vegetables. Get Rs 30 off on your favourite vegetables at Sri Manjunatha Stores."
-  },
-  "C049": {
-   "kn": "ನಮಸ್ಕಾರ ದೀಪಾ, ತರಕಾರಿ ಖಾಲಿಯಾಯಿತೇ? ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ತರಕಾರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
-   "en": "Hello Deepa, running out of vegetables? Come to Sri Manjunatha Stores and enjoy Rs 30 off on your vegetables."
-  },
-  "C302": {
-   "kn": "ನಮಸ್ಕಾರ ಕಾರ್ತಿಕ್, ಬಹಳ ದಿನವಾಯಿತು ಭೇಟಿಯಾಗಿ. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ನಲ್ಲಿ ತಾಜಾ ತರಕಾರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
-   "en": "Hello Karthik, long time no see. Avail Rs 30 off on fresh vegetables at Sri Manjunatha Stores."
+   "kn": "ನಮಸ್ಕಾರ ಕಾರ್ತಿಕ್, ತರಕಾರಿ ತಗೊಂಡು ತುಂಬಾ ದಿನ ಆಯ್ತು. ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 50 ರೂ ತಗ್ಗಿಸುತ್ತೇನೆ. ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್, ಎಚ್ ಎಸ್ ಆರ್ ಲೇಔಟ್.",
+   "hi": "नमस्ते कार्तिक, सब्ज़ियां लिए बहुत दिन हो गए। दुकान आइए, आपके बिल पर 50 रुपये की छूट मिलेगी। मंजूनाथ स्टोर्स, एचएसआर लेआउट।",
+   "en": "Hello Karthik, it has been a while since you bought vegetables. Drop by the store, I will take 50 rupees off your bill. Manjunatha Stores, HSR Layout."
   },
   "C246": {
-   "kn": "ನಮಸ್ಕಾರ ಮನೋಜ್, ದಿನಸಿ ಶಾಪಿಂಗ್ ಬಾಕಿ ಇದೆ. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ದಿನಸಿ ಸಾಮಗ್ರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
-   "en": "Hello Manoj, pending grocery shopping? Visit Sri Manjunatha Stores for Rs 30 off on your grocery items."
+   "kn": "ನಮಸ್ಕಾರ ಮನೋಜ್, ದಿನಸಿ ತಗೊಂಡು ತುಂಬಾ ದಿನ ಆಯ್ತು. ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 50 ರೂ ತಗ್ಗಿಸುತ್ತೇನೆ. ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್, ಎಚ್ ಎಸ್ ಆರ್ ಲೇಔಟ್.",
+   "hi": "नमस्ते मनोज, किराने का सामान लिए बहुत दिन हो गए। दुकान आइए, आपके बिल पर 50 रुपये की छूट मिलेगी। मंजूनाथ स्टोर्स, एचएसआर लेआउट।",
+   "en": "Hello Manoj, it has been a while since you bought groceries. Drop by the store, I will take 50 rupees off your bill. Manjunatha Stores, HSR Layout."
   },
   "C004": {
-   "kn": "ನಮಸ್ಕಾರ ವರುಣ್, ತರಕಾರಿ ತರಲು ಬರ್ತಿಲ್ಲ ಯಾಕೆ? ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ನಲ್ಲಿ ನಿಮ್ಮ ತರಕಾರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
-   "en": "Hello Varun, why haven't you come for vegetables? Get Rs 30 off on vegetables at Sri Manjunatha Stores."
+   "kn": "ನಮಸ್ಕಾರ ವರುಣ್, ತರಕಾರಿ ತಗೊಂಡು ತುಂಬಾ ದಿನ ಆಯ್ತು. ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ 50 ರೂ ತಗ್ಗಿಸುತ್ತೇನೆ. ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್, ಎಚ್ ಎಸ್ ಆರ್ ಲೇಔಟ್.",
+   "hi": "नमस्ते वरुण, सब्ज़ियां लिए बहुत दिन हो गए। दुकान आइए, आपके बिल पर 50 रुपये की छूट मिलेगी। मंजूनाथ स्टोर्स, एचएसआर लेआउट।",
+   "en": "Hello Varun, it has been a while since you bought vegetables. Drop by the store, I will take 50 rupees off your bill. Manjunatha Stores, HSR Layout."
   }
  },
  "brief:{\"slipping\":[{\"name\":\"Aisha\",\"lastSeen\":48,\"usual\":7},{\"name\":\"Rekha\",\"lastSeen\":53,\"usual\":7},{\"name\":\"Arjun\",\"lastSeen\":37,\"usual\":3}],\"expectedToday\":32,\"revenueAtRisk\":71033,\"areaAlert\":true}": {
-  "kn": "सुप्रभात मंजुनाथ! ಇಂದು 32 ಗ್ರಾಹಕರು ಬರಬಹುದು. Aisha, Rekha, Arjun ಇತ್ತೀಚೆಗೆ ಬಂದಿಲ್ಲ, ಇವರಿಗೆ ಆಫರ್ ಕಳುಹಿಸೇವೇ? ಪ್ರದೇಶದಲ್ಲಿ ನೀರಿನ ಸಮಸ್ಯೆ ಇದೆ, ಎಚ್ಚರ.",
-  "en": "Good morning Manjunath! Expect 32 customers today. Aisha, Rekha, and Arjun haven't visited lately, should I send them an offer? There is a water alert in the area, be careful."
+  "kn": "ನಮಸ್ಕಾರ ಮಂಜುನಾಥ್. ಇಂದು ಮೂವತ್ತೆರಡು ಗ್ರಾಹಕರು ಬರಬಹುದು. ಆಯಿಷಾ, ರೇಖಾ ಮತ್ತು ಅರ್ಜುನ್ ಸ್ವಲ್ಪ ದಿನದಿಂದ ಬಂದಿಲ್ಲ, ಅವರಿಗೆ ಕೊಡುಗೆ ಕಳುಹಿಸೇವೇ? ಪ್ರದೇಶದಲ್ಲಿ ನೀರಿನ ಸಮಸ್ಯೆ ಇದೆ ಎಚ್ಚರಿಕೆ ಇರಲಿ.",
+  "hi": "नमस्ते मंजुनाथ। आज बत्तीस ग्राहक आ सकते हैं। आयशा, रेखा और अर्जुन कुछ दिनों से नहीं आए हैं, क्या उन्हें छूट भेजें? इलाके में पानी की समस्या है, ध्यान रखें।",
+  "en": "Good morning Manjunath. Expect thirty-two customers today. Aisha, Rekha, and Arjun haven't visited lately; should we send them a win-back offer? Also, note the water shortage alert in the area."
  }
 }

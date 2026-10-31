@@ -2,13 +2,14 @@
 
 import { Bot, Mic, RotateCcw } from "lucide-react";
 import { useApp } from "@/components/Providers";
+import { LANGS, lines } from "@/lib/pehchaan/i18n";
 import { SHOP } from "@/lib/pehchaan/sim";
 
 export default function Settings() {
-  const { status, reset, speak, speaking } = useApp();
+  const { status, reset, speak, speaking, lang, setLang } = useApp();
   const rows = [
     { icon: Bot, name: "Gemini", desc: "Writes win-back messages and the morning brief. Never decides who or how much.", on: status?.gemini, env: "GEMINI_API_KEY" },
-    { icon: Mic, name: "Sarvam AI", desc: "Kannada voice on the Soundbox (Bulbul v3)", on: status?.sarvam, env: "SARVAM_API_KEY" },
+    { icon: Mic, name: "Sarvam AI", desc: "Soundbox voice in Kannada, Hindi or English (Bulbul v3) and spoken questions (Saaras v4)", on: status?.sarvam, env: "SARVAM_API_KEY" },
   ];
   return (
     <div style={{ display: "grid", gap: 16, maxWidth: 760 }}>
@@ -22,9 +23,10 @@ export default function Settings() {
         </div>
       </div>
       <div className="card" data-in>
-        <div className="card-head"><div><div className="card-title">Soundbox voice</div><div className="card-sub">Kannada · morning brief at 7:30 am · counter greetings on</div></div></div>
-        <div className="card-body">
-          <button className="btn btn-secondary btn-sm" disabled={speaking} onClick={() => speak("ನಮಸ್ಕಾರ ಮಂಜುನಾಥ್ ಅವರೇ, ನಾನು ಪೆಹಚಾನ್. ನಿಮ್ಮ ಗ್ರಾಹಕರನ್ನು ನಾನು ನೆನಪಿಟ್ಟುಕೊಳ್ಳುತ್ತೇನೆ.", "Hello Manjunath, I'm Pehchaan. I'll remember your customers for you.")}>
+        <div className="card-head"><div><div className="card-title">Soundbox voice</div><div className="card-sub">{LANGS.find((l) => l.k === lang)?.label} · morning brief at 7:30 am · counter greetings on</div></div></div>
+        <div className="card-body" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <div className="seg">{LANGS.map((l) => <button key={l.k} aria-pressed={lang === l.k} onClick={() => setLang(l.k)}>{l.label}</button>)}</div>
+          <button className="btn btn-secondary btn-sm" disabled={speaking} onClick={() => speak(lines.hello())}>
             {speaking ? "Speaking…" : "Test voice"}
           </button>
         </div>

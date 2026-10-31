@@ -7,6 +7,7 @@ import { dMedium } from "@/lib/format";
 import { CAL_END, HOLD_END } from "@/lib/pehchaan/model";
 import { customers } from "@/lib/pehchaan/sim";
 import { gapText, usePehchaan } from "@/lib/pehchaan/use";
+import cdnow from "@/lib/pehchaan/cdnow-validation.json";
 import s from "./model.module.css";
 
 const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
@@ -70,6 +71,36 @@ export default function Model() {
             </div>
           )}
         </div>
+      </section>
+
+      <section className="card" data-in>
+        <div className="card-head">
+          <div>
+            <div className="card-title">Validated on real purchase data</div>
+            <div className="card-sub">{cdnow.dataset} — the dataset from the original BG/NBD paper · {cdnow.source}</div>
+          </div>
+          <span className="badge badge-good">Real data</span>
+        </div>
+        <div className={s.real}>
+          <table className={s.ptable}>
+            <thead><tr><th>Parameter</th><th>Our fit</th><th>Published</th><th>Difference</th></tr></thead>
+            <tbody>
+              {(["r", "alpha", "a", "b"] as const).map((k) => (
+                <tr key={k}>
+                  <td className="mono">{k === "alpha" ? "α" : k}</td>
+                  <td className="mono">{cdnow.ours[k].toFixed(3)}</td>
+                  <td className="mono">{cdnow.published[k].toFixed(3)}</td>
+                  <td className="mono">{(((cdnow.ours[k] - cdnow.published[k]) / cdnow.published[k]) * 100).toFixed(1)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className={s.realChart}>
+            <GroupedBars groups={cdnow.buckets.map((x) => ({ label: x.label, a: x.predicted, b: x.actual }))} names={["Predicted", "Actual"]} fmt={(n) => n.toFixed(1)} height={200} />
+            <p className={s.axis}>Repeat purchases in weeks 1–39 → average purchases in unseen weeks 40–78</p>
+          </div>
+        </div>
+        <p className={s.realNote}>Our maximum-likelihood fit recovers the published parameters within 3%. On the 39 unseen weeks it predicted {Math.round(cdnow.holdout.predicted).toLocaleString("en-IN")} repeat purchases against {cdnow.holdout.actual.toLocaleString("en-IN")} actual ({Math.round(((cdnow.holdout.predicted - cdnow.holdout.actual) / cdnow.holdout.actual) * 100)}%) — real data is noisier than our demo shop, which is why the pilot measures accuracy on Paytm&apos;s own payments. Reproduce: <span className="mono">npx tsx scripts/validate-cdnow.ts</span></p>
       </section>
     </div>
   );

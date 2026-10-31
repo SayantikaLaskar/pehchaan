@@ -84,12 +84,12 @@ function pearson(a: number[], b: number[]) {
   return num / Math.sqrt(da * db);
 }
 
-function backtest(all: Customer[]): Backtest {
-  const rows = all.map((c) => ({ c, r: rfm(c, CAL_END) })).filter((x): x is { c: Customer; r: RFM } => !!x.r);
+export function backtest(all: Customer[], calEnd = CAL_END, holdEnd = HOLD_END): Backtest {
+  const rows = all.map((c) => ({ c, r: rfm(c, calEnd) })).filter((x): x is { c: Customer; r: RFM } => !!x.r);
   const params = fitBG(rows.map((x) => x.r));
-  const h = (HOLD_END - CAL_END) / DAY;
+  const h = (holdEnd - calEnd) / DAY;
   const pred = rows.map((x) => expectedVisits(params, x.r, h));
-  const act = rows.map((x) => x.c.visits.filter((v) => v.t > CAL_END && v.t <= HOLD_END).length);
+  const act = rows.map((x) => x.c.visits.filter((v) => v.t > calEnd && v.t <= holdEnd).length);
   const bins = [[0, 0], [1, 2], [3, 5], [6, 10], [11, 20], [21, 40], [41, 1e9]];
   const buckets = bins.map(([lo, hi]) => {
     const idx = rows.map((x, i) => (x.r.x >= lo && x.r.x <= hi ? i : -1)).filter((i) => i >= 0);
@@ -151,20 +151,19 @@ function shock(all: Customer[]): Shock {
 
 let cache: Analysis | null = null;
 
-export function analyse(): Analysis {
-  if (cache) return cache;
-  const all = customers();
-  const rows = all.map((c) => ({ c, r: rfm(c, TODAY)! }));
+/** Fit both models on any merchant's customers and score each one as of `today`. */
+export function scoreAll(all: Customer[], today: number) {
+  const rows = all.filter((c) => c.visits.length && c.visits[0].t <= today).map((c) => ({ c, r: rfm(c, today)! }));
   const bg = fitBG(rows.map((x) => x.r));
   const gg = fitGG(rows.map((x) => x.r));
 
   const scored: Scored[] = rows.map(({ c, r }) => {
-    const r30 = rfm(c, TODAY - 30 * DAY);
+    const r30 = rfm(c, today - 30 * DAY);
     const pa = pAlive(bg, r);
     const pa30 = r30 ? pAlive(bg, r30) : pa;
     const spend = expectedSpend(gg, r);
     const next30 = expectedVisits(bg, r, 30);
-    const lastSeen = (TODAY - c.visits[c.visits.length - 1].t) / DAY;
+    const lastSeen = (today - c.visits[c.visits.length - 1].t) / DAY;
     const avgGap = r.x > 0 ? r.tx / r.x : r.T;
     const activeDays = Math.max(30, r.tx + avgGap);
     const monthly = (c.visits.reduce((s, v) => s + v.amount, 0) / activeDays) * 30;
@@ -179,8 +178,13 @@ export function analyse(): Analysis {
       winnable: (segment === "at_risk" || segment === "lost") && lastSeen <= 90,
     };
   });
+  return { bg, gg, scored };
+}
 
-  cache = { bg, gg, scored, backtest: backtest(all), shock: shock(all) };
+export function analyse(): Analysis {
+  if (cache) return cache;
+  const all = customers();
+  cache = { ...scoreAll(all, TODAY), backtest: backtest(all), shock: shock(all) };
   return cache;
 }
 

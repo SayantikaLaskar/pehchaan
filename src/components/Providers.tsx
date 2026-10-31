@@ -2,16 +2,21 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ConsentStatus } from "@/lib/pehchaan/consent";
+import { codeOf, type Lang, type Say } from "@/lib/pehchaan/i18n";
 
-export interface Sent { at: number; offer: number; returned: boolean | null }
+export interface Sent { at: number; offer: number; returned: boolean | null; code?: string }
 export interface Audit { t: number; actor: "Agent" | "Merchant" | "Customer" | "System"; action: string; subject?: string; detail: string }
 
 interface Ctx {
   status: { gemini: boolean; sarvam: boolean } | null;
-  speak: (kn: string, en: string) => Promise<void>;
+  speak: (say: Partial<Say> & { en: string }) => Promise<void>;
+  lang: Lang;
+  setLang: (l: Lang) => void;
   speaking: boolean;
   sent: Record<string, Sent>;
-  markSent: (ids: string[], offer: number, why?: Record<string, string>) => void;
+  markSent: (ids: string[], offer: number, why?: Record<string, string>, codes?: Record<string, string>) => void;
+  seen: number; // last live event processed
+  setSeen: (t: number) => void;
   markReturned: (id: string, returned: boolean) => void;
   consent: Record<string, ConsentStatus>; // overrides on top of the captured baseline
   setConsent: (id: string, status: ConsentStatus, name?: string) => void;
@@ -24,7 +29,7 @@ const C = createContext<Ctx | null>(null);
 export const useApp = () => useContext(C)!;
 
 const KEY = "pehchaan.state.v2";
-interface Saved { sent: Record<string, Sent>; consent: Record<string, ConsentStatus>; audit: Audit[] }
+interface Saved { sent: Record<string, Sent>; consent: Record<string, ConsentStatus>; audit: Audit[]; seen?: number; lang?: Lang }
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<Ctx["status"]>(null);
@@ -52,10 +57,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   const log = useCallback((e: Omit<Audit, "t">) => update((s) => ({ ...s, audit: [entry(e), ...s.audit].slice(0, 500) })), [update]);
 
-  const markSent = useCallback((ids: string[], offer: number, why: Record<string, string> = {}) => {
+  const markSent = useCallback((ids: string[], offer: number, why: Record<string, string> = {}, codes: Record<string, string> = {}) => {
     update((s) => ({
       ...s,
-      sent: { ...s.sent, ...Object.fromEntries(ids.map((id) => [id, { at: Date.now(), offer, returned: null }])) },
+      sent: { ...s.sent, ...Object.fromEntries(ids.map((id) => [id, { at: Date.now(), offer, returned: null, code: codes[id] }])) },
       audit: [...ids.map((id) => entry({ actor: "Agent", action: "Offer sent", subject: id, detail: `₹${offer} store offer via Paytm app · ${why[id] ?? "slipping away"}` })), ...s.audit].slice(0, 500),
     }));
   }, [update]);
@@ -76,14 +81,20 @@ export function Providers({ children }: { children: React.ReactNode }) {
     }));
   }, [update]);
 
-  const reset = useCallback(() => update(() => ({ sent: {}, consent: {}, audit: [] })), [update]);
+  const reset = useCallback(() => update((s) => ({ sent: {}, consent: {}, audit: [], seen: s.seen })), [update]);
+  const setSeen = useCallback((t: number) => update((s) => ({ ...s, seen: Math.max(s.seen ?? 0, t) })), [update]);
 
-  const speak = useCallback(async (kn: string, en: string) => {
+  const lang: Lang = state.lang ?? "kn";
+  const setLang = useCallback((l: Lang) => update((s) => ({ ...s, lang: l })), [update]);
+
+  const speak = useCallback(async (say: Partial<Say> & { en: string }) => {
+    const text = say[lang] || say.en;
+    const code = say[lang] ? codeOf(lang) : "en-IN";
     audio.current?.pause();
     window.speechSynthesis?.cancel();
     setSpeaking(true);
     try {
-      const res = await fetch("/api/tts", { method: "POST", body: JSON.stringify({ text: kn, lang: "kn-IN" }) });
+      const res = await fetch("/api/tts", { method: "POST", body: JSON.stringify({ text, lang: code }) });
       const { audio: b64 } = await res.json();
       if (b64) {
         const a = new Audio(`data:audio/wav;base64,${b64}`);
@@ -93,19 +104,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }
       // No Sarvam key — fall back to the browser voice.
       const voices = window.speechSynthesis.getVoices();
-      const knVoice = voices.find((v) => v.lang.startsWith("kn"));
-      const u = new SpeechSynthesisUtterance(knVoice ? kn : en);
-      u.voice = knVoice ?? voices.find((v) => v.lang === "en-IN") ?? null;
-      u.lang = knVoice ? "kn-IN" : "en-IN";
+      const native = voices.find((v) => v.lang.startsWith(code.slice(0, 2)));
+      const u = new SpeechSynthesisUtterance(native ? text : say.en);
+      u.voice = native ?? voices.find((v) => v.lang === "en-IN") ?? null;
+      u.lang = native ? code : "en-IN";
       await new Promise<void>((done) => { u.onend = () => done(); u.onerror = () => done(); window.speechSynthesis.speak(u); });
     } finally {
       setSpeaking(false);
     }
-  }, []);
+  }, [lang]);
 
   const value = useMemo(
-    () => ({ status, speak, speaking, sent: state.sent, markSent, markReturned, consent: state.consent, setConsent, audit: state.audit, log, reset }),
-    [status, speak, speaking, state, markSent, markReturned, setConsent, log, reset],
+    () => ({ status, speak, speaking, lang, setLang, sent: state.sent, markSent, markReturned, consent: state.consent, setConsent, audit: state.audit, log, reset, seen: state.seen ?? 0, setSeen }),
+    [status, speak, speaking, lang, setLang, state, markSent, markReturned, setConsent, log, reset, setSeen],
   );
   return <C.Provider value={value}>{children}</C.Provider>;
 }

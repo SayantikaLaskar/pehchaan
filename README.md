@@ -20,13 +20,15 @@ cp .env.example .env    # add free keys (optional)
 npm run dev             # http://localhost:3000
 npm run model:check     # fit the models and print the backtest
 npm run sarvam:check    # one Kannada TTS → STT round trip
+npm run validate:cdnow  # fit BG/NBD on real CDNOW data and compare with the published parameters
 ```
 
 | Key | Get it free | Used for | Without it |
 |---|---|---|---|
 | `GEMINI_API_KEY` | aistudio.google.com | Writes win-back messages and the morning brief | Kannada templates |
 | `GEMINI_MODEL` / `GEMINI_THINKING` | optional | Default `gemini-3.5-flash-lite` (falls back to `gemini-3.6-flash` on quota), thinking `low` | — |
-| `SARVAM_API_KEY` | dashboard.sarvam.ai | Kannada voice on the Soundbox (Bulbul v3) | Browser voice |
+| `SARVAM_API_KEY` | dashboard.sarvam.ai | Soundbox voice in Kannada / Hindi / English (Bulbul v3) and spoken questions (Saaras v4) | Browser voice; tap-to-ask questions |
+| `UPSTASH_REDIS_REST_URL` / `_TOKEN` (or `KV_REST_API_URL` / `_TOKEN`) | Vercel → Storage → Upstash Redis | Live phone loop: offer links, redemptions and opt-outs shared across servers | In-memory store (works locally only) |
 
 Every Gemini call is cached and raced against a timeout, falling back to a template, so the demo never stalls on the free tier.
 
@@ -41,8 +43,9 @@ All numbers come from a deterministic simulation of one HSR Layout kirana: 420 c
 | Top 10% of customers by model | made 41% of holdout visits |
 | Visits vs expectation after the opening | −47% within 500 m · −19% at 0.5–1 km · ~0% beyond 1 km |
 | Network radar | 7 of 36 shops flagged; change point in the week of 17 Aug; source located within ~360 m |
+| **Real data — CDNOW** (`npm run validate:cdnow`) | Fitted parameters within 3% of Fader, Hardie & Lee (2005): r 0.242 vs 0.243, α 4.394 vs 4.414, a 0.814 vs 0.793, b 2.477 vs 2.426. Holdout: 1,631 predicted vs 1,882 actual repeat purchases (−13%) |
 
-The LLM never decides who or how much. It only writes the words.
+The LLM never decides who or how much. It only writes the words. The win-back agent picks the offer size by Thompson sampling over ₹20 / ₹30 / ₹50 and learns from every redemption.
 
 ## Screens
 
@@ -54,6 +57,11 @@ The LLM never decides who or how much. It only writes the words.
 | `/app/winback` | The agent: plan → Kannada messages → send → simulated returns and ₹ recovered |
 | `/app/model` | Backtest chart, fitted parameters, a worked example, and where the LLM is (and isn't) used |
 | `/app/radar` | Paytm view: map with a week-by-week scrubber, inferred dark store, and a ground-truth reveal |
+| `/app/import` | Your data: upload a Paytm payment export (CSV), map columns, score your own customers — in the browser |
+| `/app/trust` | Trust centre: RBI / NPCI / DPDP / TRAI principles, what the LLM sees, consent ledger, audit log |
+| `/app/business` | Business case: interactive calculator of value to Paytm and to one merchant |
+| `/kiosk` | Full-screen Soundbox: live payments greeted aloud, voice questions, Kannada / Hindi / English |
+| `/o/[code]` | The customer's phone: Paytm-style offer with Redeem and Stop offers |
 
 ## 3-minute demo
 

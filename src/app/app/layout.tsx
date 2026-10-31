@@ -5,8 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Bell, BrainCircuit, ChevronsUpDown, HeartHandshake, LayoutDashboard, Radar, Search, Send, Settings, ShieldCheck, UserRoundX, Users } from "lucide-react";
+import { Bell, BrainCircuit, ChevronsUpDown, FileUp, HeartHandshake, IndianRupee, LayoutDashboard, Speaker, Radar, Search, Send, Settings, ShieldCheck, UserRoundX, Users } from "lucide-react";
 import { useApp } from "@/components/Providers";
+import { LiveLoop } from "@/components/LiveLoop";
+import { LANGS } from "@/lib/pehchaan/i18n";
 import { Logo } from "@/components/Logo";
 import { SHOP } from "@/lib/pehchaan/sim";
 import { maskVpa } from "@/lib/pehchaan/consent";
@@ -19,9 +21,13 @@ const NAV = [
     { href: "/app/customers", label: "Customers", icon: Users },
     { href: "/app/winback", label: "Win-back agent", icon: Send, badge: "winback" },
     { href: "/app/model", label: "How it predicts", icon: BrainCircuit },
+    { href: "/app/import", label: "Your data", icon: FileUp },
     { href: "/app/trust", label: "Trust centre", icon: ShieldCheck },
   ] },
-  { group: "Paytm network", items: [{ href: "/app/radar", label: "Neighbourhood radar", icon: Radar, badge: "radar" }] },
+  { group: "Paytm network", items: [
+    { href: "/app/radar", label: "Neighbourhood radar", icon: Radar, badge: "radar" },
+    { href: "/app/business", label: "Business case", icon: IndianRupee },
+  ] },
 ];
 
 const TITLES: Record<string, [string, string]> = {
@@ -30,13 +36,15 @@ const TITLES: Record<string, [string, string]> = {
   "/app/winback": ["Win-back agent", "Picks who to bring back, writes to them in Kannada, and tracks who returns."],
   "/app/model": ["How it predicts", "The churn model behind every number — and how it scored on months it never saw."],
   "/app/radar": ["Neighbourhood radar", "Paytm view · regulars dropping off at many shops at once, and where it's coming from."],
+  "/app/import": ["Your data", "Upload a Paytm payment export and see your own customers scored — in your browser."],
+  "/app/business": ["Business case", "What Pehchaan is worth to Paytm — every assumption on the table."],
   "/app/trust": ["Trust centre", "Consent, data residency and an audit trail for every action — built for RBI, NPCI and DPDP rules."],
   "/app/settings": ["Settings", "Language, voice and connections."],
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const { status, sent } = useApp();
+  const { status, sent, lang, setLang } = useApp();
   const { net } = usePehchaan();
   const { eligible } = useLive();
   const toWin = eligible.filter((w) => !sent[w.c.id]).length;
@@ -109,7 +117,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Search size={15} /><span>Search customers, pages…</span><span className="kbd">⌘K</span>
           </button>
           <div className={s.topRight}>
+            <div className="seg" role="group" aria-label="Soundbox language">
+              {LANGS.map((l) => <button key={l.k} aria-pressed={lang === l.k} onClick={() => setLang(l.k)}>{l.k === "en" ? "EN" : l.label}</button>)}
+            </div>
             <button className={s.iconBtn} aria-label="Notifications"><Bell size={16} /><i /></button>
+            <Link href="/kiosk" className="btn btn-secondary btn-sm"><Speaker size={14} />Soundbox</Link>
             <Link href="/app/winback" className="btn btn-primary btn-sm"><HeartHandshake size={14} />Win back {toWin || ""}</Link>
           </div>
         </header>
@@ -135,6 +147,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           return <Link key={it.href} href={it.href} className={active ? s.mOn : ""} aria-label={it.label}><Icon size={18} /></Link>;
         })}
       </nav>
+      <LiveLoop />
       {cmd && <Command onClose={() => setCmd(false)} />}
     </div>
   );

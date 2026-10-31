@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "model:check": "tsx scripts/model-check.ts",
-    "sarvam:check": "node --env-file=.env scripts/sarvam-check.mjs"
+    "sarvam:check": "node --env-file=.env scripts/sarvam-check.mjs",
+    "validate:cdnow": "tsx scripts/validate-cdnow.ts"
   },
   "dependencies": {
     "@google/genai": "^2.31.0",
@@ -17,6 +18,7 @@
     "lenis": "^1.3.27",
     "lucide-react": "^1.61.0",
     "next": "15.5.28",
+    "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "zod": "^4.6.7"
@@ -24,6 +26,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
