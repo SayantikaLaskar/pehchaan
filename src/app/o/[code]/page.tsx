@@ -6,7 +6,7 @@ import { useGSAP } from "@gsap/react";
 import { AudioLines, BellOff, Check, CloudOff, MapPin, MessageCircle, Store } from "lucide-react";
 import { token, transmit } from "@/lib/sound";
 import { post, startOutbox } from "@/lib/outbox";
-import { MERCHANT_WA, waLink } from "@/lib/pehchaan/orders";
+import { merchantWa, waLink } from "@/lib/pehchaan/orders";
 import { Logo } from "@/components/Logo";
 import { offerText } from "@/lib/pehchaan/i18n";
 import s from "./offer.module.css";
@@ -21,14 +21,14 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
   const [busy, setBusy] = useState(false);
   const root = useRef<HTMLDivElement>(null);
 
-  const [embedded, setEmbedded] = useState<{ id: string; first: string; offer: number; lang: "kn" | "hi" | "en"; kn: string; hi: string; en: string } | null>(null);
+  const [embedded, setEmbedded] = useState<{ id: string; first: string; offer: number; lang: "kn" | "hi" | "en"; kn: string; hi: string; en: string; wa?: string } | null>(null);
   useEffect(() => {
     const d = new URLSearchParams(window.location.search).get("d");
     let fromLink: typeof embedded = null;
     try {
       if (d) {
-        const x = JSON.parse(decodeURIComponent(escape(atob(d.replace(/-/g, "+").replace(/_/g, "/"))))) as { i: string; f: string; o: number; l: "kn" | "hi" | "en" };
-        fromLink = { id: x.i, first: x.f, offer: x.o, lang: x.l, ...offerText(x.f, x.o) };
+        const x = JSON.parse(decodeURIComponent(escape(atob(d.replace(/-/g, "+").replace(/_/g, "/"))))) as { i: string; f: string; o: number; l: "kn" | "hi" | "en"; w?: string };
+        fromLink = { id: x.i, first: x.f, offer: x.o, lang: x.l, wa: x.w, ...offerText(x.f, x.o) };
       }
     } catch {}
     setEmbedded(fromLink);
@@ -79,7 +79,7 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
     } finally { setChirp(false); }
   };
   // Can't come to the counter (rain, lockdown, unwell): order on the shop's WhatsApp instead.
-  const wa = o ? waLink(MERCHANT_WA, `Hi ${o.shop}, this is ${o.first}. I'd like a home delivery with my ₹${o.offer} offer (code ${o.code}):\n`) : "#";
+  const wa = o ? waLink(embedded?.wa || merchantWa(), `Hi ${o.shop}, this is ${o.first}. I'd like a home delivery with my ₹${o.offer} offer (code ${o.code}):\n`) : "#";
 
   return (
     <main className={s.screen} ref={root}>

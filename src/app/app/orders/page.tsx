@@ -105,7 +105,9 @@ export default function Orders() {
                   <footer>
                     {done[k] ? <span className={s.ok}><CheckCheck size={15} />Delivered · paid ₹{amount} by UPI · counted as {first}&apos;s visit</span> : (
                       <>
-                        <a className="btn btn-secondary btn-sm" href={waLink("91984500" + o.id.replace(/\D/g, "").padStart(4, "0"), confirmText(first, items, amount).kn)} target="_blank" rel="noreferrer"><Send size={13} />Confirm on WhatsApp</a>
+                        {o.via === "cloud-api"
+                          ? <span className={s.small}><CheckCheck size={13} /> Confirmed automatically on WhatsApp</span>
+                          : <a className="btn btn-secondary btn-sm" href={waLink(null, confirmText(first, items, amount).kn)} target="_blank" rel="noreferrer"><Send size={13} />Reply on WhatsApp</a>}
                         {amount > 0 && <UpiQr amount={amount} note={`Order ${first}`} />}
                         <button className="btn btn-primary btn-sm" onClick={() => deliver(o, cust, amount)}><Truck size={13} />Delivered & paid</button>
                       </>

@@ -15,6 +15,17 @@ export const lines = {
     hi: days ? `${first} जी ${days} दिन बाद वापस आए हैं। स्वागत कीजिए!` : `${first} जी वापस आए हैं। स्वागत कीजिए!`,
     en: days ? `${first} is back after ${days} days. Give them a warm welcome!` : `${first} is back. Give them a warm welcome!`,
   }),
+  // The offer lives with the shop, keyed to the customer's UPI ID: they just pay, the Soundbox applies it.
+  applied: (first: string, offer: number): Say => ({
+    kn: `${first} ಅವರೇ, ಮತ್ತೆ ಸ್ವಾಗತ! ನಿಮ್ಮ ₹${offer} ರಿಯಾಯಿತಿ ಅನ್ವಯಿಸಲಾಗಿದೆ.`,
+    hi: `${first} जी, फिर से स्वागत है! आपकी ₹${offer} की छूट लगा दी गई है।`,
+    en: `Welcome back, ${first}! Your ₹${offer} offer has been applied.`,
+  }),
+  order: (first: string, amount: number): Say => ({
+    kn: `${first} ಅವರಿಂದ WhatsApp ಆರ್ಡರ್ ಬಂದಿದೆ, ₹${amount}.`,
+    hi: `${first} जी का WhatsApp ऑर्डर आया है, ₹${amount}।`,
+    en: `New WhatsApp order from ${first}, ₹${amount}.`,
+  }),
   regular: (first: string): Say => ({ kn: `${first} ಅವರೇ, ನಮಸ್ಕಾರ!`, hi: `नमस्ते ${first} जी!`, en: `Hello ${first}!` }),
   newFace: (): Say => ({ kn: "ಹೊಸ ಗ್ರಾಹಕರು — ಸ್ವಾಗತ!", hi: "नए ग्राहक — स्वागत है!", en: "A new customer — welcome!" }),
   hello: (): Say => ({

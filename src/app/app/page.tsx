@@ -10,16 +10,18 @@ import { CountUp } from "@/components/motion";
 import { Composition, CumulativeChart } from "@/components/charts";
 import { useApp } from "@/components/Providers";
 import { SEGMENTS, type Segment } from "@/lib/pehchaan/model";
-import { LANGS, lines } from "@/lib/pehchaan/i18n";
+import { LANGS } from "@/lib/pehchaan/i18n";
+import { useCounter } from "@/lib/pehchaan/counter";
 import { L, gapText, inr, useLive } from "@/lib/pehchaan/use";
 import type { Brief } from "@/lib/ai";
 import s from "./overview.module.css";
 
 export default function Today() {
-  const { speak, speaking, sent, markReturned, lang } = useApp();
+  const { speak, speaking, sent, lang } = useApp();
+  const pay = useCounter();
   const { scored, winnable, shock, expectedToday, net } = useLive();
   const [brief, setBrief] = useState<Brief | null>(null);
-  const [toast, setToast] = useState<{ name: string; days: number } | null>(null);
+  const [toast, setToast] = useState<{ name: string; days: number; applied: number } | null>(null);
   const toastRef = useRef<HTMLDivElement>(null);
 
   const active = scored.filter((x) => x.segment === "champion" || x.segment === "loyal").length;
@@ -46,10 +48,8 @@ export default function Today() {
   const simulate = () => {
     if (!counter) return;
     const days = Math.round(counter.lastSeen);
-    const first = counter.c.name.split(" ")[0];
-    setToast({ name: counter.c.name, days });
-    if (sent[counter.c.id]) markReturned(counter.c.id, true);
-    speak(lines.back(first, days));
+    const r = pay(counter, Math.round(counter.spend / 10) * 10);
+    setToast({ name: counter.c.name, days, applied: r.applied });
   };
   useGSAP(() => {
     if (toast && toastRef.current) gsap.fromTo(toastRef.current, { y: 30, autoAlpha: 0, scale: 0.96 }, { y: 0, autoAlpha: 1, scale: 1, duration: 0.6, ease: "expo.out" });
@@ -153,8 +153,8 @@ export default function Today() {
         <div ref={toastRef} className={s.toast} onClick={() => setToast(null)}>
           <span className={s.toastIcon}><QrCode size={16} /></span>
           <span>
-            <b>{toast.name} is back after {toast.days} days</b>
-            <small className="kn">{toast.name.split(" ")[0]} ಅವರು {toast.days} ದಿನಗಳ ನಂತರ ಮತ್ತೆ ಬಂದಿದ್ದಾರೆ</small>
+            <b>{toast.name} is back after {toast.days} days{toast.applied ? ` · ₹${toast.applied} offer applied` : ""}</b>
+            <small className="kn">{toast.applied ? `${toast.name.split(" ")[0]} ಅವರೇ, ನಿಮ್ಮ ₹${toast.applied} ರಿಯಾಯಿತಿ ಅನ್ವಯಿಸಲಾಗಿದೆ — matched by UPI ID, no app needed` : `${toast.name.split(" ")[0]} ಅವರು ${toast.days} ದಿನಗಳ ನಂತರ ಮತ್ತೆ ಬಂದಿದ್ದಾರೆ`}</small>
           </span>
         </div>
       )}

@@ -1,6 +1,8 @@
 "use client";
 
-import { Bot, Mic, RotateCcw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bot, MessageCircle, Mic, RotateCcw } from "lucide-react";
+import { merchantWa, setMerchantWa, waLink } from "@/lib/pehchaan/orders";
 import { useApp } from "@/components/Providers";
 import { LANGS, lines } from "@/lib/pehchaan/i18n";
 import { SHOP } from "@/lib/pehchaan/sim";
@@ -22,6 +24,7 @@ export default function Settings() {
           <Field k="Paytm UPI" v={SHOP.vpa} mono />
         </div>
       </div>
+      <ShopWhatsApp />
       <div className="card" data-in>
         <div className="card-head"><div><div className="card-title">Soundbox voice</div><div className="card-sub">{LANGS.find((l) => l.k === lang)?.label} · morning brief at 7:30 am · counter greetings on</div></div></div>
         <div className="card-body" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
@@ -68,6 +71,23 @@ function Field({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <span className="t3" style={{ fontSize: 12 }}>{k}</span>
       <span className={mono ? "mono" : ""}>{v}</span>
+    </div>
+  );
+}
+
+// The number customers' "Order on WhatsApp" buttons open. It travels inside each offer's QR.
+function ShopWhatsApp() {
+  const [v, setV] = useState("");
+  const [saved, setSaved] = useState("");
+  useEffect(() => { const m = merchantWa(); setV(m); setSaved(m); }, []);
+  return (
+    <div className="card" data-in>
+      <div className="card-head"><div><div className="card-title">Shop WhatsApp</div><div className="card-sub">Customers who can&apos;t come in order here · free, from your own WhatsApp Business app</div></div></div>
+      <div className="card-body" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <input value={v} onChange={(e) => setV(e.target.value)} inputMode="tel" placeholder="10-digit mobile number" style={{ height: 34, padding: "0 10px", borderRadius: 8, border: "1px solid var(--border)", fontFamily: "var(--font-mono), monospace", fontSize: 13, minWidth: 220 }} />
+        <button className="btn btn-primary btn-sm" onClick={() => { const full = setMerchantWa(v); setV(full); setSaved(full); }}>Save</button>
+        {saved && <a className="btn btn-secondary btn-sm" href={waLink(saved, "Test order from Pehchaan: 2 milk, 1 bread")} target="_blank" rel="noreferrer"><MessageCircle size={13} />Test the link</a>}
+      </div>
     </div>
   );
 }

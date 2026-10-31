@@ -55,12 +55,30 @@ export function upiLink(amount: number, note: string) {
   return `upi://pay?${q.toString()}`;
 }
 
-/** WhatsApp click-to-chat — free, works from the merchant's own WhatsApp Business app. */
-export function waLink(phone: string, text: string) {
-  return `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`;
+/**
+ * WhatsApp click-to-chat — free, no account. With a number it opens that chat; without one it opens
+ * WhatsApp's "send to…" picker, which is always valid (a made-up number is not).
+ */
+export function waLink(phone: string | null | undefined, text: string) {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  return digits.length >= 10 ? `https://wa.me/${digits}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 
-export const MERCHANT_WA = process.env.NEXT_PUBLIC_MERCHANT_WHATSAPP || "919845000000";
+const WA_KEY = "pehchaan.merchantWa";
+// The demo shop's WhatsApp (the team's number for the hackathon); override in Settings or NEXT_PUBLIC_MERCHANT_WHATSAPP.
+const DEMO_SHOP_WA = "916394082247";
+/** The shop's own WhatsApp number: Settings first, then the deployment default. Digits with country code. */
+export function merchantWa(): string {
+  let v = "";
+  try { v = localStorage.getItem(WA_KEY) ?? ""; } catch {}
+  return (v || process.env.NEXT_PUBLIC_MERCHANT_WHATSAPP || DEMO_SHOP_WA).replace(/\D/g, "");
+}
+export function setMerchantWa(v: string) {
+  const d = v.replace(/\D/g, "");
+  const full = d.length === 10 ? "91" + d : d;
+  try { localStorage.setItem(WA_KEY, full); } catch {}
+  return full;
+}
 
 export function confirmText(first: string, items: Item[], amount: number) {
   const list = items.map((i) => `• ${i.qty} ${i.unit} ${i.name}`).join("\n");

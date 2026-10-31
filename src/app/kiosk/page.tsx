@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { ArrowLeft, Pause, Play, Volume2 } from "lucide-react";
+import { ArrowLeft, BadgePercent, Pause, Play, Volume2 } from "lucide-react";
+import { useCounter } from "@/lib/pehchaan/counter";
+import type { Scored } from "@/lib/pehchaan/model";
 import { AskSoundbox } from "@/components/AskSoundbox";
 import { SoundListener } from "@/components/SoundListener";
 import { LiveLoop } from "@/components/LiveLoop";
@@ -22,7 +24,8 @@ interface Beat { name: string; vpa: string; amount: number; visits: number; usua
 // Full-screen Soundbox for the counter, the stage and the demo video.
 export default function Kiosk() {
   const { scored, winnable } = usePehchaan();
-  const { lang, setLang, speak } = useApp();
+  const { lang, setLang, speak, sent } = useApp();
+  const pay = useCounter();
   const [started, setStarted] = useState(false);
   const [live, setLive] = useState(true);
   const [i, setI] = useState(0);
@@ -47,11 +50,23 @@ export default function Kiosk() {
     }
     return out;
   }, [scored, winnable]);
-  const b = beats[i % beats.length];
+  // Customers holding an offer from the agent. When one of them pays, the offer is applied right here,
+  // matched by UPI ID — they need no app, no link and no data on their phone.
+  const pending = useMemo(() => scored.filter((x) => sent[x.c.id]?.code && sent[x.c.id].returned == null), [scored, sent]);
+  const [special, setSpecial] = useState<{ beat: Beat; n: number } | null>(null);
+  const applyAt = (x: Scored) => {
+    const amount = Math.round(x.spend / 10) * 10;
+    const r = pay(x, amount);
+    const f = x.c.name.split(" ")[0];
+    setSpecial((p) => ({ n: (p?.n ?? 0) + 1, beat: { name: x.c.name, vpa: x.c.vpa, amount, visits: x.c.visits.length + 1, usual: gapText(x.avgGap), p: 0.9, badge: `₹${r.applied} offer applied`, color: "var(--good)", note: `Paid ₹${r.paid} · matched by UPI ID`, say: lines.applied(f, r.applied) } }));
+  };
+  const next = useRef<() => void>(() => {});
+  next.current = () => { if (pending[0]) applyAt(pending[0]); else { setSpecial(null); setI((x) => x + 1); } };
+  const b = special?.beat ?? beats[i % beats.length];
 
   useEffect(() => {
     if (!started || !live) return;
-    const id = setInterval(() => setI((x) => x + 1), 7000);
+    const id = setInterval(() => next.current(), 7000);
     return () => clearInterval(id);
   }, [started, live]);
 
@@ -68,7 +83,7 @@ export default function Kiosk() {
       .fromTo(`.${s.card}`, { x: 30, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.7 }, 0.5)
       .fromTo(`.${s.fill}`, { width: "0%" }, { width: `${b.p * 100}%`, duration: 1.1 }, 0.8)
       .fromTo(`.${s.say}`, { y: 12, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.5 }, 1);
-  }, { scope: root, dependencies: [i, started] });
+  }, { scope: root, dependencies: [i, started, special?.n] });
 
   return (
     <main className={s.root} ref={root}>
@@ -78,6 +93,7 @@ export default function Kiosk() {
         <div className={s.controls}>
           <div className={s.langs}>{LANGS.map((l) => <button key={l.k} aria-pressed={lang === l.k} onClick={() => setLang(l.k)}>{l.label}</button>)}</div>
           <SoundListener compact />
+          {started && pending[0] && <button className={s.ctl} onClick={() => applyAt(pending[0])} title="The next payment is from a customer holding an offer"><BadgePercent size={15} />{pending[0].c.name.split(" ")[0]} pays</button>}
           {started && <button className={s.ctl} onClick={() => setLive(!live)}>{live ? <Pause size={15} /> : <Play size={15} />}{live ? "Pause" : "Resume"}</button>}
         </div>
       </header>

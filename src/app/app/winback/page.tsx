@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 import { post } from "@/lib/outbox";
 import { SoundListener } from "@/components/SoundListener";
 import { offerText } from "@/lib/pehchaan/i18n";
+import { merchantWa } from "@/lib/pehchaan/orders";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { Bot, BrainCircuit, Check, CircleDashed, Loader2, Play, RotateCcw, Send, Sparkles } from "lucide-react";
@@ -136,7 +137,7 @@ export default function Winback() {
     if (!code) { setQr(null); return; }
     // The link carries the offer too, so the phone page works even if another server answers.
     // Keep it short so the QR stays scannable: id, first name, offer, language (~100 chars total).
-    const d = pv ? btoa(unescape(encodeURIComponent(JSON.stringify({ i: pv.c.id, f: pv.c.name.split(" ")[0], o: sent[pv.c.id]?.offer ?? offer, l: lang })))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") : "";
+    const d = pv ? btoa(unescape(encodeURIComponent(JSON.stringify({ i: pv.c.id, f: pv.c.name.split(" ")[0], o: sent[pv.c.id]?.offer ?? offer, l: lang, ...(merchantWa() ? { w: merchantWa() } : {}) })))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") : "";
     const url = `${window.location.origin}/o/${code}${d ? `?d=${d}` : ""}`;
     setLink(url);
     QRCode.toDataURL(url, { margin: 2, width: 480, errorCorrectionLevel: "M", color: { dark: "#06132b", light: "#ffffff" } }).then(setQr);

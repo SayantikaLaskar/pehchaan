@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AudioLines, BellOff, Clock3, CloudOff, Cpu, HardDriveDownload, MapPinned, MessageCircle, PauseCircle, Phone, QrCode, Radar, RefreshCw, Store, TrendingDown, Truck, Wifi } from "lucide-react";
+import { AudioLines, BadgePercent, BellOff, Clock3, CloudOff, Cpu, HardDriveDownload, MapPinned, MessageCircle, PauseCircle, Phone, Radar, RefreshCw, Store, TrendingDown, Truck, Wifi } from "lucide-react";
 import { LOCKDOWN, OUTAGE, resilience, type AlarmSeries, type Classification, type ShockKind } from "@/lib/pehchaan/resilience";
 import { WEEK0, WEEKS } from "@/lib/pehchaan/network";
 import { DAY } from "@/lib/pehchaan/sim";
@@ -170,7 +170,7 @@ function Offline() {
         <div><b className="mono">{scored.length}</b><span>customers scored on this device — the churn model runs in the browser, no server call</span></div>
         <div><b className="mono">{q}</b><span>actions waiting to sync {q > 0 && <button className="btn btn-ghost btn-sm" onClick={() => flush()}><RefreshCw size={12} />Sync now</button>}</span></div>
         <div><b>{sw === "on" ? "Cached" : sw === "dev" ? "Dev mode" : "On first load"}</b><span>{sw === "on" ? "app shell saved for offline use (service worker)" : sw === "dev" ? "service worker runs in the production build" : "the app caches itself after the first visit"}</span></div>
-        <div><b>In the QR</b><span>every offer travels inside its QR, so the customer&apos;s phone opens it with no network; Redeem is queued and synced</span></div>
+        <div><b>Offer at the shop</b><span>offers are kept against each customer&apos;s UPI ID on the shop&apos;s device, so the Soundbox applies them when they pay — nothing to open on the customer&apos;s phone</span></div>
       </div>
       <div className={s.rural}>
         <div className={s.ruralHead}>
@@ -180,12 +180,12 @@ function Offline() {
         </div>
         <ol className={s.chain}>
           <li><Cpu size={16} /><span><b>Model at the edge</b>Scores are closed-form maths on a few numbers per customer — they run on the merchant&apos;s phone or Soundbox. Parameters refresh whenever a sync happens.</span></li>
-          <li><QrCode size={16} /><span><b>Shop → customer: offer in the QR</b>The offer itself is encoded in the QR on the counter or the printed receipt. The customer&apos;s phone opens it with no data.</span></li>
-          <li><AudioLines size={16} /><span><b>Customer → shop: redeem by sound</b>The phone plays a 2-second chirp; the shop&apos;s phone hears it and redeems (open-source ggwave, the same idea as NPCI&apos;s sound-based UPI 123PAY). No pairing, no internet.</span></li>
+          <li><BadgePercent size={16} /><span><b>The offer lives with the shop</b>It&apos;s stored against the customer&apos;s UPI ID. They just pay; the Soundbox recognises them and applies it aloud. Works for feature phones and phones with no data.</span></li>
+          <li><Phone size={16} /><span><b>Payment works offline too</b>UPI Lite X (tap phones, ₹500) and UPI 123PAY (IVR, missed call, sound — for feature phones) need no internet on the customer&apos;s side.</span></li>
           <li><HardDriveDownload size={16} /><span><b>Store and forward</b>Redemptions, consent changes and Soundbox events queue on the device and sync over any 2G burst — with their real times, so the churn clock isn&apos;t fooled.</span></li>
-          <li><Phone size={16} /><span><b>Offline UPI rails</b>Payments via UPI Lite X (tap phones, ₹500) and UPI 123PAY (IVR, missed call, sound — for feature phones) still reach Pehchaan when they settle, and count as visits.</span></li>
+          <li><AudioLines size={16} /><span><b>Backup: redeem by sound</b>A smartphone that already saved the offer (Paytm app, or opened once with signal) plays a 2-second chirp; the shop&apos;s device hears it. Open-source ggwave — the idea behind NPCI&apos;s sound-based UPI 123PAY.</span></li>
         </ol>
-        <p className={s.try}>Try it now: open an offer on a phone, tap <b>No internet? Redeem by sound</b>, and press <b>Listen for offers</b> on the Win-back page or the Soundbox screen — the dashboard celebrates with both devices in airplane mode after the page has loaded.</p>
+        <p className={s.try}>Try it: run the win-back agent, open the <b>Soundbox</b> screen and press the <b>“… pays”</b> button — the offer is applied and announced in Kannada with no link, app or data on her side. For the smartphone backup, open an offer once, go offline, tap <b>Redeem by sound</b>, and press <b>Listen for offers</b> on the shop&apos;s screen.</p>
       </div>
     </section>
   );
