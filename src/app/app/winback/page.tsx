@@ -106,11 +106,11 @@ export default function Winback() {
   useEffect(() => {
     if (!code) { setQr(null); return; }
     // The link carries the offer too, so the phone page works even if another server answers.
-    const m = pv ? msgs[pv.c.id] : undefined;
-    const d = pv && m ? btoa(unescape(encodeURIComponent(JSON.stringify({ id: pv.c.id, first: pv.c.name.split(" ")[0], kn: m.kn, hi: m.hi, en: m.en, lang, offer: sent[pv.c.id]?.offer ?? offer })))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") : "";
+    // Keep it short so the QR stays scannable: id, first name, offer, language (~100 chars total).
+    const d = pv ? btoa(unescape(encodeURIComponent(JSON.stringify({ i: pv.c.id, f: pv.c.name.split(" ")[0], o: sent[pv.c.id]?.offer ?? offer, l: lang })))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") : "";
     const url = `${window.location.origin}/o/${code}${d ? `?d=${d}` : ""}`;
     setLink(url);
-    QRCode.toDataURL(url, { margin: 1, width: 260, errorCorrectionLevel: "L", color: { dark: "#06132b", light: "#ffffff" } }).then(setQr);
+    QRCode.toDataURL(url, { margin: 2, width: 480, errorCorrectionLevel: "M", color: { dark: "#06132b", light: "#ffffff" } }).then(setQr);
   }, [code, msgs]); // eslint-disable-line react-hooks/exhaustive-deps
   const recovered = returned.reduce((a, x) => a + x.monthly, 0);
 

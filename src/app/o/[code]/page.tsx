@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { BellOff, Check, MapPin, Store } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { offerText } from "@/lib/pehchaan/i18n";
 import s from "./offer.module.css";
 
 interface Offer { code: string; first: string; kn: string; hi?: string; en: string; lang?: "kn" | "hi" | "en"; offer: number; shop: string; status: "sent" | "redeemed" | "optout" }
@@ -17,11 +18,16 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
   const [busy, setBusy] = useState(false);
   const root = useRef<HTMLDivElement>(null);
 
-  const [embedded, setEmbedded] = useState<Omit<Offer, "code" | "status" | "shop"> | null>(null);
+  const [embedded, setEmbedded] = useState<{ id: string; first: string; offer: number; lang: "kn" | "hi" | "en"; kn: string; hi: string; en: string } | null>(null);
   useEffect(() => {
     const d = new URLSearchParams(window.location.search).get("d");
     let fromLink: typeof embedded = null;
-    try { if (d) fromLink = JSON.parse(decodeURIComponent(escape(atob(d.replace(/-/g, "+").replace(/_/g, "/"))))); } catch {}
+    try {
+      if (d) {
+        const x = JSON.parse(decodeURIComponent(escape(atob(d.replace(/-/g, "+").replace(/_/g, "/"))))) as { i: string; f: string; o: number; l: "kn" | "hi" | "en" };
+        fromLink = { id: x.i, first: x.f, offer: x.o, lang: x.l, ...offerText(x.f, x.o) };
+      }
+    } catch {}
     setEmbedded(fromLink);
     fetch(`/api/offers/${code}`).then(async (r) => {
       if (r.ok) setO(await r.json());

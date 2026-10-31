@@ -23,3 +23,10 @@ export const lines = {
     en: "Hello Manjunath, I'm Pehchaan. I'll remember your customers for you.",
   }),
 };
+
+/** Offer text when the full Gemini message isn't available (e.g. a phone hits a fresh server). */
+export const offerText = (first: string, offer: number): Say => ({
+  kn: `ನಮಸ್ಕಾರ ${first} ಅವರೇ! ತುಂಬಾ ದಿನಗಳಿಂದ ನಿಮ್ಮನ್ನು ನೋಡಿಲ್ಲ. ನಿಮಗಾಗಿ ₹${offer} ರಿಯಾಯಿತಿ, ಈ ವಾರ ಮಾತ್ರ. — ಮಂಜುನಾಥ್, ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್`,
+  hi: `नमस्ते ${first} जी! काफ़ी दिनों से आप नहीं आए। आपके लिए ₹${offer} की छूट, सिर्फ़ इस हफ़्ते। — मंजुनाथ, श्री मंजुनाथ स्टोर्स`,
+  en: `Namaskara ${first}! We haven't seen you in a while — ₹${offer} off for you, this week only. — Manjunath, Sri Manjunatha Stores`,
+});
