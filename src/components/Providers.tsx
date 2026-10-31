@@ -29,6 +29,8 @@ const C = createContext<Ctx | null>(null);
 export const useApp = () => useContext(C)!;
 
 const KEY = "pehchaan.state.v2";
+// Spoken lines repeat (kiosk greetings, briefs): keep each synthesized clip for the session.
+const voiceCache = new Map<string, string | null>();
 interface Saved { sent: Record<string, Sent>; consent: Record<string, ConsentStatus>; audit: Audit[]; seen?: number; lang?: Lang }
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -94,8 +96,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
     window.speechSynthesis?.cancel();
     setSpeaking(true);
     try {
-      const res = await fetch("/api/tts", { method: "POST", body: JSON.stringify({ text, lang: code }) });
-      const { audio: b64 } = await res.json();
+      const key = `${code}|${text}`;
+      if (!voiceCache.has(key)) {
+        const res = await fetch("/api/tts", { method: "POST", body: JSON.stringify({ text, lang: code }) });
+        voiceCache.set(key, (await res.json()).audio ?? null);
+      }
+      const b64 = voiceCache.get(key);
       if (b64) {
         const a = new Audio(`data:audio/wav;base64,${b64}`);
         audio.current = a;

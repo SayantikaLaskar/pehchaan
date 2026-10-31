@@ -113,3 +113,47 @@ export function expectedSpend({ p, q, v }: GGParams, { x, mx }: RFM) {
   return ((v + mx * x) * p) / (p * x + q - 1);
 }
 
+
+/* ───────────── MBG/NBD ─────────────
+   Batislam, Denizel & Filiztekin (2007). Like BG/NBD, but a customer can also drop out right
+   after their first purchase — so one-visit customers aren't assumed to be alive forever. */
+
+function mbgLL({ r, alpha, a, b }: BGParams, c: RFM) {
+  const { x, tx, T } = c;
+  const A1 = lnGamma(r + x) - lnGamma(r) + r * Math.log(alpha);
+  const A2 = lnGamma(a + b) + lnGamma(b + x + 1) - lnGamma(b) - lnGamma(a + b + x + 1);
+  const A3 = -(r + x) * Math.log(alpha + T);
+  const A4 = Math.log(a) - Math.log(b + x) - (r + x) * Math.log(alpha + tx);
+  const m = Math.max(A3, A4);
+  return A1 + A2 + m + Math.log(Math.exp(A3 - m) + Math.exp(A4 - m));
+}
+
+export function fitMBG(data: RFM[]): BGParams {
+  const unpack = (p: number[]): BGParams => ({ r: Math.exp(p[0]), alpha: Math.exp(p[1]), a: Math.exp(p[2]), b: Math.exp(p[3]) });
+  const nll = (p: number[]) => {
+    const q = unpack(p);
+    let s = 0;
+    for (const c of data) s += mbgLL(q, c);
+    return -s + 1e-3 * p.reduce((a, v) => a + v * v, 0);
+  };
+  return unpack(nelderMead(nll, [0, 1, 0, 1]));
+}
+
+export function pAliveMBG({ r, alpha, a, b }: BGParams, { x, tx, T }: RFM) {
+  return 1 / (1 + (a / (b + x)) * Math.pow((alpha + T) / (alpha + tx), r + x));
+}
+
+export function expectedVisitsMBG({ r, alpha, a, b }: BGParams, { x, tx, T }: RFM, t: number) {
+  const z = t / (alpha + T + t);
+  const hyp = hyp2f1(r + x, b + x + 1, a + b + x, z);
+  const num = ((a + b + x) / (a - 1)) * (1 - Math.pow((alpha + T) / (alpha + T + t), r + x) * hyp);
+  const den = 1 + (a / (b + x)) * Math.pow((alpha + T) / (alpha + tx), r + x);
+  return num / den;
+}
+
+/** Log-likelihood of a fitted model, for comparing BG/NBD and MBG/NBD on the same data. */
+export function totalLL(kind: "bg" | "mbg", p: BGParams, data: RFM[]) {
+  let s = 0;
+  for (const c of data) s += kind === "bg" ? bgLL(p, c) : mbgLL(p, c);
+  return s;
+}

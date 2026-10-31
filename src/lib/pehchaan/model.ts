@@ -1,5 +1,8 @@
 import { DARK_STORE, DAY, TODAY, customers, type Customer } from "./sim";
-import { expectedSpend, expectedVisits, fitBG, fitGG, pAlive, type BGParams, type GGParams, type RFM } from "./btyd";
+import { expectedSpend, expectedVisitsMBG as expectedVisits, fitGG, fitMBG as fitBG, pAliveMBG as pAlive, type BGParams, type GGParams, type RFM } from "./btyd";
+// Production model: MBG/NBD. In an out-of-sample comparison (scripts/compare-models.ts) it ranked
+// "who stopped coming" best on both the demo shop and real CDNOW data, because unlike BG/NBD it
+// lets one-visit customers drop out. The CDNOW replication of the paper still uses BG/NBD.
 
 export type Segment = "champion" | "loyal" | "new" | "at_risk" | "lost";
 
@@ -174,7 +177,8 @@ export function scoreAll(all: Customer[], today: number) {
     return {
       c, rfm: r, pAlive: pa, pAlive30: pa30, next30, spend, clv90: expectedVisits(bg, r, 90) * spend,
       lastSeen, avgGap, overdue: lastSeen / Math.max(1, avgGap), monthly, segment,
-      priority: segment === "at_risk" || segment === "lost" ? (1 - pa) * monthly * recoverable : 0,
+      // Rank by the shortfall in expected visits against their usual rhythm — the best "who left" signal in testing.
+      priority: segment === "at_risk" || segment === "lost" ? Math.max(0, 1 - next30 / Math.max(0.5, 30 / Math.max(1, avgGap))) * monthly * recoverable : 0,
       winnable: (segment === "at_risk" || segment === "lost") && lastSeen <= 90,
     };
   });

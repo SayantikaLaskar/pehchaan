@@ -8,6 +8,7 @@ import { CAL_END, HOLD_END } from "@/lib/pehchaan/model";
 import { customers } from "@/lib/pehchaan/sim";
 import { gapText, usePehchaan } from "@/lib/pehchaan/use";
 import cdnow from "@/lib/pehchaan/cdnow-validation.json";
+import comparison from "@/lib/pehchaan/model-comparison.json";
 import s from "./model.module.css";
 
 const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
@@ -24,11 +25,11 @@ export default function Model() {
         <div>
           <span className="badge badge-info"><BrainCircuit />Probabilistic model · not an LLM</span>
           <h2>Every number here comes from a statistical model fitted to <span className="mono">{payments.toLocaleString("en-IN")}</span> UPI payments.</h2>
-          <p>A kirana regular never cancels — they just stop coming. Pehchaan uses the BG/NBD and Gamma-Gamma models from customer-base analysis (Fader, Hardie &amp; Lee, 2005), built for exactly this: customers who can leave silently at any time.</p>
+          <p>A kirana regular never cancels — they just stop coming. Pehchaan uses MBG/NBD — an improved BG/NBD (Batislam et al., 2007; Fader, Hardie &amp; Lee, 2005) that also lets one-visit customers drop out — plus Gamma-Gamma for spend. We picked it by testing four approaches out of sample, below.</p>
         </div>
         <ul className={s.pipeline}>
           <li><Database size={16} /><span><b>Input</b>For each UPI ID: how often they paid, when they last paid, how long they&apos;ve been a customer</span></li>
-          <li><Calculator size={16} /><span><b>BG/NBD</b>Probability they&apos;re still a regular, and how many visits to expect next</span></li>
+          <li><Calculator size={16} /><span><b>MBG/NBD</b>Probability they&apos;re still a regular, and how many visits to expect next</span></li>
           <li><Target size={16} /><span><b>Gamma-Gamma</b>How much they&apos;ll spend per visit → 90-day value</span></li>
           <li><MessageSquareText size={16} /><span><b>LLM (Gemini)</b>Only writes the Kannada messages. It never decides who or how much.</span></li>
         </ul>
@@ -70,6 +71,36 @@ export default function Model() {
               <p><b>{ex.c.name}</b> paid {ex.rfm.x + 1} times, {gapText(ex.avgGap)}, then nothing for <b>{Math.round(ex.lastSeen)} days</b>. For someone this regular, that silence is unusual — so the probability they&apos;re still a regular falls to <b>{Math.round(ex.pAlive * 100)}%</b> (it was {Math.round(ex.pAlive30 * 100)}% a month ago). An occasional customer with the same silence would barely move.</p>
             </div>
           )}
+        </div>
+      </section>
+
+      <section className="card" data-in>
+        <div className="card-head">
+          <div>
+            <div className="card-title">Why this model — tested against simple rules</div>
+            <div className="card-sub">Out of sample on both datasets · AUC = how well it ranks the customers who made no visits in the test period (0.5 = random, 1 = perfect) · reproduce: <span className="mono">npx tsx scripts/compare-models.ts</span></div>
+          </div>
+          <span className="badge badge-good">MBG/NBD selected</span>
+        </div>
+        <div className={s.cmp}>
+          <table className={s.ptable}>
+            <thead><tr><th>Approach</th>{comparison.map((d) => <th key={d.name} colSpan={2}>{d.name}</th>)}</tr><tr><th /><th>AUC</th><th>Forecast error</th><th>AUC</th><th>Forecast error</th></tr></thead>
+            <tbody>
+              {comparison[0].models.map((m, i) => {
+                const chosen = m.model === "MBG/NBD · ranked by expected visits";
+                return (
+                  <tr key={m.model} className={chosen ? s.chosen : ""}>
+                    <td>{m.model}{chosen && " ✓"}</td>
+                    {comparison.map((d) => {
+                      const x = d.models[i];
+                      return [<td key={d.name + "a"} className="mono">{x.auc.toFixed(2)}</td>, <td key={d.name + "m"} className="mono">{x.mae == null ? "—" : `${x.mae.toFixed(2)} visits`}</td>];
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <p className={s.realNote}>Plain BG/NBD assumes a one-time buyer is still a customer, which fails on real data where most people buy once (CDNOW AUC 0.32 — worse than random). MBG/NBD fixes that, and ranking by expected visits gives the best &ldquo;who left&rdquo; signal on both datasets while keeping forecast error less than half the simple rate rule&apos;s.</p>
         </div>
       </section>
 

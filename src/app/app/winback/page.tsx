@@ -31,6 +31,7 @@ export default function Winback() {
   const [preview, setPreview] = useState<string | null>(null);
   const scope = useRef<HTMLDivElement>(null);
   const [qr, setQr] = useState<string | null>(null);
+  const [link, setLink] = useState<string | null>(null);
 
   // Only opted-in customers, and nobody who already got an offer this month.
   const pool = eligible.filter((x) => !sent[x.c.id]);
@@ -104,8 +105,13 @@ export default function Winback() {
   const pm = preview ? msgs[preview] : null;
   useEffect(() => {
     if (!code) { setQr(null); return; }
-    QRCode.toDataURL(`${window.location.origin}/o/${code}`, { margin: 1, width: 240, color: { dark: "#06132b", light: "#ffffff" } }).then(setQr);
-  }, [code]);
+    // The link carries the offer too, so the phone page works even if another server answers.
+    const m = pv ? msgs[pv.c.id] : undefined;
+    const d = pv && m ? btoa(unescape(encodeURIComponent(JSON.stringify({ id: pv.c.id, first: pv.c.name.split(" ")[0], kn: m.kn, hi: m.hi, en: m.en, lang, offer: sent[pv.c.id]?.offer ?? offer })))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") : "";
+    const url = `${window.location.origin}/o/${code}${d ? `?d=${d}` : ""}`;
+    setLink(url);
+    QRCode.toDataURL(url, { margin: 1, width: 260, errorCorrectionLevel: "L", color: { dark: "#06132b", light: "#ffffff" } }).then(setQr);
+  }, [code, msgs]); // eslint-disable-line react-hooks/exhaustive-deps
   const recovered = returned.reduce((a, x) => a + x.monthly, 0);
 
   return (
@@ -186,7 +192,7 @@ export default function Winback() {
               <div className={s.qr}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={qr} alt={`QR code for ${pv.c.name}'s offer`} />
-                <span><b>Be {pv.c.name.split(" ")[0]} — scan to get the offer</b><small>Redeem on your phone and watch this dashboard</small></span>
+                <span><b>Be {pv.c.name.split(" ")[0]} — scan to get the offer</b><small>Redeem on your phone and watch this dashboard</small>{link && <a href={link} target="_blank" rel="noreferrer" className={s.olink}>Open offer link ↗</a>}</span>
               </div>
             )}
           </div>

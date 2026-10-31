@@ -45,5 +45,52 @@
   "kn": "ನಮಸ್ಕಾರ ಮಂಜುನಾಥ್. ಇಂದು ಮೂವತ್ತೆರಡು ಗ್ರಾಹಕರು ಬರಬಹುದು. ಆಯಿಷಾ, ರೇಖಾ ಮತ್ತು ಅರ್ಜುನ್ ಸ್ವಲ್ಪ ದಿನದಿಂದ ಬಂದಿಲ್ಲ, ಅವರಿಗೆ ಕೊಡುಗೆ ಕಳುಹಿಸೇವೇ? ಪ್ರದೇಶದಲ್ಲಿ ನೀರಿನ ಸಮಸ್ಯೆ ಇದೆ ಎಚ್ಚರಿಕೆ ಇರಲಿ.",
   "hi": "नमस्ते मंजुनाथ। आज बत्तीस ग्राहक आ सकते हैं। आयशा, रेखा और अर्जुन कुछ दिनों से नहीं आए हैं, क्या उन्हें छूट भेजें? इलाके में पानी की समस्या है, ध्यान रखें।",
   "en": "Good morning Manjunath. Expect thirty-two customers today. Aisha, Rekha, and Arjun haven't visited lately; should we send them a win-back offer? Also, note the water shortage alert in the area."
+ },
+ "brief:{\"slipping\":[{\"name\":\"Aisha\",\"lastSeen\":48,\"usual\":7},{\"name\":\"Rekha\",\"lastSeen\":53,\"usual\":7},{\"name\":\"Arjun\",\"lastSeen\":37,\"usual\":3}],\"expectedToday\":32,\"revenueAtRisk\":71753,\"areaAlert\":true}": {
+  "kn": "ನಮಸ್ಕಾರ ಮಂಜುನಾಥ್. ಇಂದು ಮೂವತ್ತೆರಡು ಗ್ರಾಹಕರನ್ನು ನಿರೀಕ್ಷಿಸಬಹುದು. ಆಯೇಷಾ, ರೇಖಾ, ಮತ್ತು ಅರ್ಜುನ್ ಇತ್ತೀಚೆಗೆ ಬಂದಿಲ್ಲ, ಅವರಿಗೊಂದು ಆಫರ್ ಕಳುಹಿಸಲೆ? ಪ್ರದೇಶದಲ್ಲಿ ಮಳೆಯ ಎಚ್ಚರಿಕೆ ಇದೆ.",
+  "hi": "नमस्ते मंजुनाथ। आज बत्तीस ग्राहकों की उम्मीद है। आयशा, रेखा और अर्जुन हाल ही में नहीं आए हैं, क्या उन्हें एक ऑफर भेजूं? इलाके में बारिश का अलर्ट है।",
+  "en": "Hello Manjunath. Expect thirty two customers today. Aisha, Rekha, and Arjun haven't visited lately, shall I send them an offer? There is a weather alert in the area."
+ },
+ "msgs:[{\"id\":\"C076\",\"name\":\"Aisha\",\"usual\":\"every 7 days\",\"lastSeen\":48,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C026\",\"name\":\"Rekha\",\"usual\":\"every 7 days\",\"lastSeen\":53,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C300\",\"name\":\"Arjun\",\"usual\":\"every 3 days\",\"lastSeen\":37,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C096\",\"name\":\"Jyothi\",\"usual\":\"every 6 days\",\"lastSeen\":50,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C049\",\"name\":\"Deepa\",\"usual\":\"every 5 days\",\"lastSeen\":31,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C147\",\"name\":\"Anil\",\"usual\":\"every 6 days\",\"lastSeen\":33,\"favourite\":\"milk and vegetables\",\"offer\":30},{\"id\":\"C302\",\"name\":\"Karthik\",\"usual\":\"every 2 days\",\"lastSeen\":53,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C283\",\"name\":\"Abhishek\",\"usual\":\"every 5 days\",\"lastSeen\":29,\"favourite\":\"vegetables\",\"offer\":30}]": {
+  "C076": {
+   "kn": "ನಮಸ್ಕಾರ ಆಯಿಷಾ. ನಿಮ್ಮ ದಿನಸಿ ಸಾಮಾನುಗಳು ಖಾಲಿಯಾಗಿರಬಹುದು. ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ ಮೂವತ್ತು ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ.",
+   "hi": "नमस्ते आयशा। आपका किराना सामान खत्म हो गया होगा। दुकान आइए, आपके बिल पर तीस रुपये कम कर दूंगा।",
+   "en": "Hello Aisha. Your groceries might be over. Drop by the store, I will give you thirty rupees off on your bill."
+  },
+  "C026": {
+   "kn": "ನಮಸ್ಕಾರ ರೇಖಾ. ದಿನಸಿ ತಗೊಳ್ಳೋಕೆ ಬರ್ತಿಲ್ಲವಲ್ಲ. ಹಂಗೇ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ ಮೂವತ್ತು ರೂಪಾಯಿ ಡಿಸ್ಕೌಂಟ್ ಇರುತ್ತೆ.",
+   "hi": "नमस्ते रेखा। किराना लेने नहीं आ रही हैं। ऐसे ही आइए, आपके बिल पर तीस रुपये की छूट मिलेगी।",
+   "en": "Hello Rekha. You have not come for groceries. Just drop by, there is thirty rupees off on your bill."
+  },
+  "C300": {
+   "kn": "ನಮಸ್ಕಾರ ಅರ್ಜುನ್. ತರಕಾರಿ ತಗೊಳ್ಳೋಕೆ ಅಂಗಡಿ ಕಡೆ ಬಂದೇ ಇಲ್ಲ. ಬನ್ನಿ, ನಿಮ್ಮ ತರಕಾರಿ ಬಿಲ್ ಮೇಲೆ ಮೂವತ್ತು ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡ್ತೀನಿ.",
+   "hi": "नमस्ते अर्जुन। सब्जी लेने दुकान तरफ आए ही नहीं। आइए, आपके सब्जी बिल पर तीस रुपये कम कर दूंगा।",
+   "en": "Hello Arjun. You have not come for vegetables. Drop by, I will reduce thirty rupees on your vegetable bill."
+  },
+  "C096": {
+   "kn": "ನಮಸ್ಕಾರ ಜ್ಯೋತಿ. ತಾಜಾ ತರಕಾರಿ ಬಂದಿದೆ. ಅಂಗಡಿಗೆ ಒಮ್ಮೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ನಲ್ಲಿ ಮೂವತ್ತು ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡಿಕೊಡ್ತೀನಿ.",
+   "hi": "नमस्ते ज्योति। ताजी सब्जियां आई हैं। दुकान एक बार आइए, आपके बिल में तीस रुपये कम कर दूंगा।",
+   "en": "Hello Jyothi. Fresh vegetables have arrived. Come to the store once, I will reduce thirty rupees in your bill."
+  },
+  "C049": {
+   "kn": "ನಮಸ್ಕಾರ ದೀಪ. ತರಕಾರಿ ತಗೊಳ್ಳೋಕೆ ಬಹಳ ದಿನ ಆಯ್ತು. ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ ಮೂವತ್ತು ರೂಪಾಯಿ ವಿನಾಯಿತಿ ಇದೆ.",
+   "hi": "नमस्ते दीपा। सब्जी लिए हुए बहुत दिन हो गए। आइए, आपके बिल पर तीस रुपये की छूट है।",
+   "en": "Hello Deepa. It has been a while since you took vegetables. Drop by, there is thirty rupees off on your bill."
+  },
+  "C147": {
+   "kn": "ನಮಸ್ಕಾರ ಅನಿಲ್. ಹಾಲು ತರಕಾರಿ ತಗೊಳ್ಳೋಕೆ ಕಾಣ್ತಿಲ್ಲ. ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ ಮೂವತ್ತು ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡ್ತೀನಿ.",
+   "hi": "नमस्ते अनिल। दूध सब्जी लेने दिखाई नहीं दे रहे। आइए, आपके बिल पर तीस रुपये कम कर दूंगा।",
+   "en": "Hello Anil. You are not seen for milk and vegetables. Drop by, I will reduce thirty rupees on your bill."
+  },
+  "C302": {
+   "kn": "ನಮಸ್ಕಾರ ಕಾರ್ತಿಕ್. ತರಕಾರಿ ಖಾಲಿಯಾಗಿದೆ ಅನ್ಸುತ್ತೆ. ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ನಲ್ಲಿ ಮೂವತ್ತು ರೂಪಾಯಿ ಕಡಿಮೆ ಮಾಡುತ್ತೇನೆ.",
+   "hi": "नमस्ते कार्तिक। सब्जी खत्म हो गई होगी। दुकान आइए, आपके बिल में तीस रुपये कम कर दूंगा।",
+   "en": "Hello Karthik. Vegetables might be over. Drop by the store, I will reduce thirty rupees in your bill."
+  },
+  "C283": {
+   "kn": "ನಮಸ್ಕಾರ ಅಭಿಷೇಕ್. ತರಕಾರಿ ತಗೊಳ್ಳೋಕೆ ಬರ್ತಿಲ್ಲ. ಹಂಗೇ ಅಂಗಡಿಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ಬಿಲ್ ಮೇಲೆ ಮೂವತ್ತು ರೂಪಾಯಿ ಡಿಸ್ಕೌಂಟ್ ಕೊಡ್ತೀನಿ.",
+   "hi": "नमस्ते अभिषेक। सब्जी लेने नहीं आ रहे हैं। ऐसे ही दुकान आइए, आपके बिल पर तीस रुपये छूट दूंगा।",
+   "en": "Hello Abhishek. You are not coming for vegetables. Just drop by the store, I will give thirty rupees off on your bill."
+  }
  }
 }

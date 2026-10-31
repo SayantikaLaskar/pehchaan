@@ -17,8 +17,17 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
   const [busy, setBusy] = useState(false);
   const root = useRef<HTMLDivElement>(null);
 
+  const [embedded, setEmbedded] = useState<Omit<Offer, "code" | "status" | "shop"> | null>(null);
   useEffect(() => {
-    fetch(`/api/offers/${code}`).then(async (r) => (r.ok ? setO(await r.json()) : setErr((await r.json()).error)));
+    const d = new URLSearchParams(window.location.search).get("d");
+    let fromLink: typeof embedded = null;
+    try { if (d) fromLink = JSON.parse(decodeURIComponent(escape(atob(d.replace(/-/g, "+").replace(/_/g, "/"))))); } catch {}
+    setEmbedded(fromLink);
+    fetch(`/api/offers/${code}`).then(async (r) => {
+      if (r.ok) setO(await r.json());
+      else if (fromLink) setO({ ...fromLink, code, shop: "Sri Manjunatha Stores", status: "sent" });
+      else setErr((await r.json()).error);
+    });
   }, [code]);
 
   useGSAP(() => {
@@ -33,7 +42,7 @@ export default function OfferPage({ params }: { params: Promise<{ code: string }
 
   const act = async (action: "redeem" | "optout") => {
     setBusy(true);
-    const r = await fetch(`/api/offers/${code}`, { method: "POST", body: JSON.stringify({ action }) });
+    const r = await fetch(`/api/offers/${code}`, { method: "POST", body: JSON.stringify({ action, offer: embedded }) });
     setO(await r.json());
     setBusy(false);
   };

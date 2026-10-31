@@ -18,13 +18,13 @@ gsap.registerPlugin(ScrollTrigger);
 
 const STORY = [
   { k: "Recognise", icon: Fingerprint, title: "Every UPI payment becomes a customer.", body: "The payer name and UPI ID on each Soundbox payment build a profile automatically: how often they come, what they spend, who shares a household." },
-  { k: "Predict", icon: BrainCircuit, title: "Know who's quietly leaving.", body: "A probabilistic churn model (BG/NBD) estimates, for every customer, the chance they're still a regular — and flags the moment that chance falls." },
+  { k: "Predict", icon: BrainCircuit, title: "Know who's quietly leaving.", body: "A probabilistic churn model (MBG/NBD) estimates, for every customer, the chance they're still a regular — and flags the moment that chance falls." },
   { k: "Act", icon: Send, title: "An agent that wins them back.", body: "Each week it picks who's worth an offer, writes to them in Kannada through the Paytm app, and recognises them on the Soundbox when they return." },
   { k: "See the city", icon: Radar, title: "Paytm sees what no shop can.", body: "When regulars leave many shops in the same week, Paytm triangulates the cause — like a new quick-commerce dark store — and warns every merchant nearby." },
 ];
 
 const FAQ = [
-  ["Is this just an LLM wrapper?", "No. Every number comes from statistical models fitted to payment history — BG/NBD for churn and Gamma-Gamma for spend — backtested on months the model never saw. The LLM only writes the Kannada message; it never decides who or how much."],
+  ["Is this just an LLM wrapper?", "No. Every number comes from statistical models fitted to payment history — MBG/NBD for churn and Gamma-Gamma for spend — chosen by testing four approaches out of sample, on our shop and on real CDNOW purchase data. The LLM only writes the Kannada message; it never decides who or how much."],
   ["Where does the customer data come from?", "From payments the merchant already receives: the payer name and UPI ID that appear on every Paytm for Business statement. No new app, no data entry, no loyalty card."],
   ["What about privacy?", "Merchants never see phone numbers. Offers are delivered as Paytm app notifications under Paytm's consent settings, and customers can opt out. Network insights are aggregated across shops."],
   ["Does it follow RBI and NPCI rules?", "It is designed to: payment data is processed only in India (RBI payment-data storage rules), payer data is never shared outside Paytm (NPCI UPI norms), customers opt in and can withdraw or be erased (DPDP Act 2023), messages go only to opted-in customers with a monthly cap (TRAI), and scores are never used for credit. Every agent action is in an exportable audit log."],
