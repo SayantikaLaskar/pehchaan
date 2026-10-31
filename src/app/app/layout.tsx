@@ -5,11 +5,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Bell, BrainCircuit, ChevronsUpDown, HeartHandshake, LayoutDashboard, Radar, Search, Send, Settings, UserRoundX, Users } from "lucide-react";
+import { Bell, BrainCircuit, ChevronsUpDown, HeartHandshake, LayoutDashboard, Radar, Search, Send, Settings, ShieldCheck, UserRoundX, Users } from "lucide-react";
 import { useApp } from "@/components/Providers";
 import { Logo } from "@/components/Logo";
 import { SHOP } from "@/lib/pehchaan/sim";
-import { usePehchaan } from "@/lib/pehchaan/use";
+import { maskVpa } from "@/lib/pehchaan/consent";
+import { useLive, usePehchaan } from "@/lib/pehchaan/use";
 import s from "./shell.module.css";
 
 const NAV = [
@@ -18,6 +19,7 @@ const NAV = [
     { href: "/app/customers", label: "Customers", icon: Users },
     { href: "/app/winback", label: "Win-back agent", icon: Send, badge: "winback" },
     { href: "/app/model", label: "How it predicts", icon: BrainCircuit },
+    { href: "/app/trust", label: "Trust centre", icon: ShieldCheck },
   ] },
   { group: "Paytm network", items: [{ href: "/app/radar", label: "Neighbourhood radar", icon: Radar, badge: "radar" }] },
 ];
@@ -28,14 +30,16 @@ const TITLES: Record<string, [string, string]> = {
   "/app/winback": ["Win-back agent", "Picks who to bring back, writes to them in Kannada, and tracks who returns."],
   "/app/model": ["How it predicts", "The churn model behind every number — and how it scored on months it never saw."],
   "/app/radar": ["Neighbourhood radar", "Paytm view · regulars dropping off at many shops at once, and where it's coming from."],
+  "/app/trust": ["Trust centre", "Consent, data residency and an audit trail for every action — built for RBI, NPCI and DPDP rules."],
   "/app/settings": ["Settings", "Language, voice and connections."],
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const { status, sent } = useApp();
-  const { winnable, net } = usePehchaan();
-  const toWin = winnable.filter((w) => !sent[w.c.id]).length;
+  const { net } = usePehchaan();
+  const { eligible } = useLive();
+  const toWin = eligible.filter((w) => !sent[w.c.id]).length;
   const [cmd, setCmd] = useState(false);
   // Model numbers are floats computed in the browser; skipping SSR here avoids last-digit hydration mismatches.
   const [mounted, setMounted] = useState(false);
@@ -138,12 +142,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 function Command({ onClose }: { onClose: () => void }) {
   const router = useRouter();
-  const { scored } = usePehchaan();
+  const { scored } = useLive();
   const [q, setQ] = useState("");
   const box = useRef<HTMLDivElement>(null);
   useGSAP(() => { gsap.from(box.current, { y: -10, scale: 0.98, autoAlpha: 0, duration: 0.35, ease: "expo.out" }); });
   const pages = Object.entries(TITLES).filter(([, [t]]) => t.toLowerCase().includes(q.toLowerCase()));
-  const hits = q.length > 1 ? scored.filter((x) => (x.c.name + x.c.vpa).toLowerCase().includes(q.toLowerCase())).slice(0, 6) : [];
+  const hits = q.length > 1 ? scored.filter((x) => x.c.name.toLowerCase().includes(q.toLowerCase())).slice(0, 6) : [];
   const go = (href: string) => { router.push(href); onClose(); };
   return (
     <div className={s.cmdBg} onClick={onClose}>
@@ -153,7 +157,7 @@ function Command({ onClose }: { onClose: () => void }) {
           {pages.length > 0 && <span className={s.cmdLabel}>Pages</span>}
           {pages.map(([href, [t]]) => <button key={href} onClick={() => go(href)}>{t}<small>{href}</small></button>)}
           {hits.length > 0 && <span className={s.cmdLabel}>Customers</span>}
-          {hits.map((x) => <button key={x.c.id} onClick={() => go(`/app/customers?id=${x.c.id}`)}>{x.c.name}<small className="mono">{Math.round(x.pAlive * 100)}% likely regular · {x.c.vpa}</small></button>)}
+          {hits.map((x) => <button key={x.c.id} onClick={() => go(`/app/customers?id=${x.c.id}`)}>{x.c.name}<small className="mono">{Math.round(x.pAlive * 100)}% likely regular · {maskVpa(x.c.vpa)}</small></button>)}
         </div>
       </div>
     </div>

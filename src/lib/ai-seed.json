@@ -70,5 +70,43 @@
  "brief:{\"slipping\":[{\"name\":\"Aisha Prasad\",\"lastSeen\":48,\"usual\":7},{\"name\":\"Rekha Khan\",\"lastSeen\":53,\"usual\":7},{\"name\":\"Arjun Naidu\",\"lastSeen\":37,\"usual\":3}],\"expectedToday\":32,\"revenueAtRisk\":71033,\"areaAlert\":true}": {
   "kn": "सुप्रभात मंजुनाथ! ಇಂದು ಸುಮಾರು 32 ಗ್ರಾಹಕರು ಬರಬಹುದು. Aisha, Rekha, ಹಾಗು Arjun ಇತ್ತೀಚೆಗೆ ಬಂದಿಲ್ಲ, ಆಫರ್ ಕಳುಹಿಸೇವಾ? ಮಳೆ ಎಚ್ಚರಿಕೆ ಇದೆ, ಎಚ್ಚರ.",
   "en": "Good morning Manjunath! Expect about 32 customers today. Aisha, Rekha, and Arjun haven't visited lately; shall I send a win-back offer? Area rain alert is active, be careful."
+ },
+ "msgs:[{\"id\":\"C076\",\"name\":\"Aisha\",\"usual\":\"every 7 days\",\"lastSeen\":48,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C026\",\"name\":\"Rekha\",\"usual\":\"every 7 days\",\"lastSeen\":53,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C300\",\"name\":\"Arjun\",\"usual\":\"every 3 days\",\"lastSeen\":37,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C096\",\"name\":\"Jyothi\",\"usual\":\"every 6 days\",\"lastSeen\":50,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C049\",\"name\":\"Deepa\",\"usual\":\"every 5 days\",\"lastSeen\":31,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C302\",\"name\":\"Karthik\",\"usual\":\"every 2 days\",\"lastSeen\":53,\"favourite\":\"vegetables\",\"offer\":30},{\"id\":\"C246\",\"name\":\"Manoj\",\"usual\":\"every 7 days\",\"lastSeen\":85,\"favourite\":\"groceries\",\"offer\":30},{\"id\":\"C004\",\"name\":\"Varun\",\"usual\":\"every 3 days\",\"lastSeen\":78,\"favourite\":\"vegetables\",\"offer\":30}]": {
+  "C076": {
+   "kn": "ನಮಸ್ಕಾರ ಆಶಾ, ನಿಮ್ಮ ದಿನಸಿ ತರಲು ತುಂಬಾ ದಿನವಾಯಿತು. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ನಲ್ಲಿ ನಿಮ್ಮ ನೆಚ್ಚಿನ ದಿನಸಿ ವಸ್ತುಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
+   "en": "Hello Aisha, it has been a long time since you came for groceries. Enjoy Rs 30 off on your favourite groceries at Sri Manjunatha Stores."
+  },
+  "C026": {
+   "kn": "ನಮಸ್ಕಾರ ರೇಖಾ, ದಿನಸಿ ತಗೊಂಡು ಬಹಳ ದಿನವಾಯಿತು. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ದಿನಸಿ ಸಾಮಗ್ರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
+   "en": "Hello Rekha, you haven't picked up groceries in a while. Visit Sri Manjunatha Stores for Rs 30 off on your groceries."
+  },
+  "C300": {
+   "kn": "ನಮಸ್ಕಾರ ಅರ್ಜುನ್, ತರಕಾರಿ ತಗೊಂಡು ತುಂಬಾ ದಿನವಾಯಿತು. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ತರಕಾರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
+   "en": "Hello Arjun, it's been days since you bought vegetables. Drop by Sri Manjunatha Stores to get Rs 30 off on vegetables."
+  },
+  "C096": {
+   "kn": "ನಮಸ್ಕಾರ ಜ್ಯೋತಿ, ತರಕಾರಿ ತರಲು ಬರಲಿಲ್ಲ. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ನಲ್ಲಿ ನಿಮ್ಮ ನೆಚ್ಚಿನ ತರಕಾರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
+   "en": "Hello Jyothi, you missed getting vegetables. Get Rs 30 off on your favourite vegetables at Sri Manjunatha Stores."
+  },
+  "C049": {
+   "kn": "ನಮಸ್ಕಾರ ದೀಪಾ, ತರಕಾರಿ ಖಾಲಿಯಾಯಿತೇ? ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ತರಕಾರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
+   "en": "Hello Deepa, running out of vegetables? Come to Sri Manjunatha Stores and enjoy Rs 30 off on your vegetables."
+  },
+  "C302": {
+   "kn": "ನಮಸ್ಕಾರ ಕಾರ್ತಿಕ್, ಬಹಳ ದಿನವಾಯಿತು ಭೇಟಿಯಾಗಿ. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ನಲ್ಲಿ ತಾಜಾ ತರಕಾರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
+   "en": "Hello Karthik, long time no see. Avail Rs 30 off on fresh vegetables at Sri Manjunatha Stores."
+  },
+  "C246": {
+   "kn": "ನಮಸ್ಕಾರ ಮನೋಜ್, ದಿನಸಿ ಶಾಪಿಂಗ್ ಬಾಕಿ ಇದೆ. ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ಗೆ ಬನ್ನಿ, ನಿಮ್ಮ ದಿನಸಿ ಸಾಮಗ್ರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
+   "en": "Hello Manoj, pending grocery shopping? Visit Sri Manjunatha Stores for Rs 30 off on your grocery items."
+  },
+  "C004": {
+   "kn": "ನಮಸ್ಕಾರ ವರುಣ್, ತರಕಾರಿ ತರಲು ಬರ್ತಿಲ್ಲ ಯಾಕೆ? ಶ್ರೀ ಮಂಜುನಾಥ ಸ್ಟೋರ್ಸ್‌ನಲ್ಲಿ ನಿಮ್ಮ ತರಕಾರಿಗಳ ಮೇಲಿದೆ 30 ರೂಪಾಯಿ ರಿಯಾಯಿತಿ.",
+   "en": "Hello Varun, why haven't you come for vegetables? Get Rs 30 off on vegetables at Sri Manjunatha Stores."
+  }
+ },
+ "brief:{\"slipping\":[{\"name\":\"Aisha\",\"lastSeen\":48,\"usual\":7},{\"name\":\"Rekha\",\"lastSeen\":53,\"usual\":7},{\"name\":\"Arjun\",\"lastSeen\":37,\"usual\":3}],\"expectedToday\":32,\"revenueAtRisk\":71033,\"areaAlert\":true}": {
+  "kn": "सुप्रभात मंजुनाथ! ಇಂದು 32 ಗ್ರಾಹಕರು ಬರಬಹುದು. Aisha, Rekha, Arjun ಇತ್ತೀಚೆಗೆ ಬಂದಿಲ್ಲ, ಇವರಿಗೆ ಆಫರ್ ಕಳುಹಿಸೇವೇ? ಪ್ರದೇಶದಲ್ಲಿ ನೀರಿನ ಸಮಸ್ಯೆ ಇದೆ, ಎಚ್ಚರ.",
+  "en": "Good morning Manjunath! Expect 32 customers today. Aisha, Rekha, and Arjun haven't visited lately, should I send them an offer? There is a water alert in the area, be careful."
  }
 }

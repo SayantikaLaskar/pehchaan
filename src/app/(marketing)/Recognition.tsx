@@ -6,6 +6,7 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Volume2 } from "lucide-react";
 import { SEGMENTS } from "@/lib/pehchaan/model";
+import { maskVpa } from "@/lib/pehchaan/consent";
 import { gapText, usePehchaan } from "@/lib/pehchaan/use";
 import s from "./recognition.module.css";
 
@@ -118,7 +119,7 @@ export function Recognition() {
             <span className={s.avatar}>{b.name.split(" ").map((p) => p[0]).join("")}</span>
             <div className={s.who}>
               <b className={s.line}>{b.name}</b>
-              <span className={`mono ${s.line}`}>{b.vpa}</span>
+              <span className={`mono ${s.line}`}>{maskVpa(b.vpa)}</span>
             </div>
             <span className={s.badge} style={{ background: `color-mix(in srgb, ${b.badgeColor} 14%, white)`, color: b.badgeColor }}>{b.badge}</span>
           </div>

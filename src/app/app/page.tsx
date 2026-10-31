@@ -9,13 +9,13 @@ import { CountUp } from "@/components/motion";
 import { Composition, CumulativeChart } from "@/components/charts";
 import { useApp } from "@/components/Providers";
 import { SEGMENTS, type Segment } from "@/lib/pehchaan/model";
-import { L, gapText, inr, usePehchaan } from "@/lib/pehchaan/use";
+import { L, gapText, inr, useLive } from "@/lib/pehchaan/use";
 import type { Brief } from "@/lib/ai";
 import s from "./overview.module.css";
 
 export default function Today() {
   const { speak, speaking, sent, markReturned } = useApp();
-  const { scored, winnable, shock, expectedToday, net } = usePehchaan();
+  const { scored, winnable, shock, expectedToday, net } = useLive();
   const [brief, setBrief] = useState<Brief | null>(null);
   const [toast, setToast] = useState<{ name: string; days: number } | null>(null);
   const toastRef = useRef<HTMLDivElement>(null);
@@ -29,7 +29,7 @@ export default function Today() {
     fetch("/api/brief", {
       method: "POST",
       body: JSON.stringify({
-        slipping: winnable.slice(0, 3).map((x) => ({ name: x.c.name, lastSeen: Math.round(x.lastSeen), usual: Math.round(x.avgGap) })),
+        slipping: winnable.slice(0, 3).map((x) => ({ name: x.c.name.split(" ")[0], lastSeen: Math.round(x.lastSeen), usual: Math.round(x.avgGap) })),
         expectedToday, revenueAtRisk: Math.round(atRiskRevenue), areaAlert: net.merchants[0].flagged,
       }),
     }).then((r) => r.json()).then(({ brief }) => setBrief(brief));

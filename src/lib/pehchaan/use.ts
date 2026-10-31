@@ -1,6 +1,9 @@
 "use client";
 
-import { analyse } from "./model";
+import { useMemo } from "react";
+import { useApp } from "@/components/Providers";
+import { baseConsent, type ConsentStatus } from "./consent";
+import { analyse, type Scored } from "./model";
 import { network } from "./network";
 import { DAY, TODAY } from "./sim";
 
@@ -36,4 +39,18 @@ export function usePehchaan(): Pehchaan {
   const expectedToday = Math.round(a.scored.reduce((s, x) => s + x.next30, 0) / 30);
   memo = { ...a, net, winnable, expectedToday, today: TODAY, DAY };
   return memo;
+}
+
+/** Model output with the merchant's live consent state applied: erased customers disappear,
+ *  and only opted-in customers are eligible for offers. */
+export function useLive() {
+  const base = usePehchaan();
+  const { consent } = useApp();
+  return useMemo(() => {
+    const statusOf = (x: Scored): ConsentStatus => consent[x.c.id] ?? baseConsent(x.c).status;
+    const scored = base.scored.filter((x) => statusOf(x) !== "erased");
+    const winnable = base.winnable.filter((x) => statusOf(x) !== "erased");
+    const eligible = winnable.filter((x) => statusOf(x) === "opted_in");
+    return { ...base, scored, winnable, eligible, statusOf };
+  }, [base, consent]);
 }

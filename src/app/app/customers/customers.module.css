@@ -55,3 +55,5 @@
   .searchBox { width: 100%; }
   .sort { margin-left: 0; }
 }
+.consentRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12.5px; }
+.consentActions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }

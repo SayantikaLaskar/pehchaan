@@ -10,7 +10,8 @@ import { DecayChart } from "@/components/charts";
 import { useApp } from "@/components/Providers";
 import { SEGMENTS, aliveCurve, type Scored, type Segment } from "@/lib/pehchaan/model";
 import { dMedium } from "@/lib/format";
-import { gapText, inr, usePehchaan } from "@/lib/pehchaan/use";
+import { CONSENT_LABEL, baseConsent, maskVpa } from "@/lib/pehchaan/consent";
+import { gapText, inr, useLive, usePehchaan } from "@/lib/pehchaan/use";
 import s from "./customers.module.css";
 
 const PER = 15;
@@ -21,7 +22,7 @@ export default function Page() {
 }
 
 function Customers() {
-  const { scored } = usePehchaan();
+  const { scored } = useLive();
   const params = useSearchParams();
   const router = useRouter();
   const [q, setQ] = useState("");
@@ -37,7 +38,7 @@ function Customers() {
 
   const rows = useMemo(() => {
     const ql = q.toLowerCase();
-    const r = scored.filter((x) => (seg === "all" || x.segment === seg) && (!ql || (x.c.name + x.c.vpa).toLowerCase().includes(ql)));
+    const r = scored.filter((x) => (seg === "all" || x.segment === seg) && (!ql || x.c.name.toLowerCase().includes(ql)));
     const key: Record<Sort, (x: Scored) => number> = {
       priority: (x) => -(x.priority || -x.monthly / 1e6),
       value: (x) => -x.clv90,
@@ -58,7 +59,7 @@ function Customers() {
     <div className={s.page}>
       <div className={`card ${s.table}`} data-in>
         <div className={s.toolbar}>
-          <div className={s.searchBox}><Search size={15} className="t3" /><input placeholder="Search name or UPI ID" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+          <div className={s.searchBox}><Search size={15} className="t3" /><input placeholder="Search customer name" value={q} onChange={(e) => setQ(e.target.value)} /></div>
           <div className={s.filters}>
             {(["all", "champion", "loyal", "new", "at_risk", "lost"] as const).map((k) => (
               <button key={k} aria-pressed={seg === k} onClick={() => setSeg(k)}>
@@ -79,7 +80,7 @@ function Customers() {
           <button key={x.c.id} className={`${s.tr} ${open?.c.id === x.c.id ? s.on : ""}`} onClick={() => setOpen(x)}>
             <span className={s.who}>
               <span className={s.av} style={{ background: `color-mix(in srgb, ${SEGMENTS[x.segment].color} 16%, white)`, color: SEGMENTS[x.segment].color }}>{x.c.name.split(" ").map((p) => p[0]).join("")}</span>
-              <span><b>{x.c.name}</b><small className="mono">{x.c.vpa}</small></span>
+              <span><b>{x.c.name}</b><small className="mono">{maskVpa(x.c.vpa)}</small></span>
             </span>
             <span><span className="badge"><span className="sw" style={{ background: SEGMENTS[x.segment].color }} />{SEGMENTS[x.segment].label}</span></span>
             <span className="t2">{gapText(x.avgGap)}</span>
@@ -104,8 +105,11 @@ function Customers() {
 }
 
 function Drawer({ x, onClose }: { x: Scored; onClose: () => void }) {
-  const { bg, scored } = usePehchaan();
-  const { sent, markSent } = useApp();
+  const { bg } = usePehchaan();
+  const { scored, statusOf } = useLive();
+  const { sent, markSent, setConsent } = useApp();
+  const consent = statusOf(x);
+  const since = baseConsent(x.c);
   const panel = useRef<HTMLDivElement>(null);
   useGSAP(() => { gsap.fromTo(panel.current, { x: 40, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.45, ease: "expo.out" }); }, { dependencies: [x.c.id] });
   const curve = useMemo(() => aliveCurve(x, bg, 180), [x, bg]);
@@ -130,7 +134,7 @@ function Drawer({ x, onClose }: { x: Scored; onClose: () => void }) {
           <span className={s.avLg} style={{ background: `color-mix(in srgb, ${SEGMENTS[x.segment].color} 16%, white)`, color: SEGMENTS[x.segment].color }}>{x.c.name.split(" ").map((p) => p[0]).join("")}</span>
           <div>
             <h2>{x.c.name}</h2>
-            <span className="mono t3">{x.c.vpa}</span>
+            <span className="mono t3">{maskVpa(x.c.vpa)}</span>
           </div>
           <span className="badge" style={{ marginLeft: "auto" }}><span className="sw" style={{ background: SEGMENTS[x.segment].color }} />{SEGMENTS[x.segment].label}</span>
         </div>
@@ -154,13 +158,20 @@ function Drawer({ x, onClose }: { x: Scored; onClose: () => void }) {
           </div>
         )}
         <div className={s.dSec}>
+          <span className={s.dLabel}>Consent</span>
+          <div className={s.consentRow}>
+            <span className={`badge ${consent === "opted_in" ? "badge-good" : consent === "withdrawn" ? "badge-warn" : ""}`}>{CONSENT_LABEL[consent]}</span>
+            <span className="t3">{consent === "opted_in" ? `via ${since.channel} · since ${new Date(since.since).toISOString().slice(0, 10)}` : consent === "withdrawn" ? "No offers will be sent" : "Never messaged until they opt in"}</span>
+          </div>
           {sent[x.c.id] ? (
             <span className="badge badge-good">Offer sent · ₹{sent[x.c.id].offer} off</span>
-          ) : x.winnable ? (
-            <button className="btn btn-primary" onClick={() => markSent([x.c.id], 30)}><Send size={14} />Send ₹30 win-back offer</button>
-          ) : (
-            <span className="t3" style={{ fontSize: 13 }}>No action needed.</span>
-          )}
+          ) : x.winnable && consent === "opted_in" ? (
+            <button className="btn btn-primary" onClick={() => markSent([x.c.id], 30, { [x.c.id]: `sent manually by merchant · P(regular) ${Math.round(x.pAlive * 100)}%` })}><Send size={14} />Send ₹30 win-back offer</button>
+          ) : null}
+          <div className={s.consentActions}>
+            {consent === "opted_in" && <button className="btn btn-ghost btn-sm" onClick={() => setConsent(x.c.id, "withdrawn")}>Record withdrawal</button>}
+            <button className="btn btn-ghost btn-sm" onClick={() => { if (confirm(`Erase ${x.c.name}? Their profile and payment summary are deleted from Pehchaan.`)) { setConsent(x.c.id, "erased", x.c.name); onClose(); } }}>Erase customer data</button>
+          </div>
           <Link href="/app/winback" className="btn btn-ghost btn-sm" style={{ marginTop: 8 }}>Open win-back agent</Link>
         </div>
       </aside>

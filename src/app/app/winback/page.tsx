@@ -8,7 +8,8 @@ import { useApp } from "@/components/Providers";
 import { rng } from "@/lib/pehchaan/sim";
 import type { Scored } from "@/lib/pehchaan/model";
 import type { Message } from "@/lib/ai";
-import { L, favourite, gapText, inr, usePehchaan } from "@/lib/pehchaan/use";
+import { llmPayload } from "@/lib/pehchaan/consent";
+import { L, favourite, gapText, inr, useLive } from "@/lib/pehchaan/use";
 import s from "./winback.module.css";
 
 // Assumed response curve: customers who left recently and were frequent respond best.
@@ -18,7 +19,7 @@ type Step = { text: string; state: "run" | "ok" };
 
 export default function Winback() {
   const { sent, markSent, markReturned, reset, speak, speaking, status } = useApp();
-  const { winnable } = usePehchaan();
+  const { winnable, eligible } = useLive();
   const [offer, setOffer] = useState(30);
   const [size, setSize] = useState(8);
   const [msgs, setMsgs] = useState<Record<string, Message>>({});
@@ -27,7 +28,9 @@ export default function Winback() {
   const [preview, setPreview] = useState<string | null>(null);
   const scope = useRef<HTMLDivElement>(null);
 
-  const pool = winnable.filter((x) => !sent[x.c.id]);
+  // Only opted-in customers, and nobody who already got an offer this month.
+  const pool = eligible.filter((x) => !sent[x.c.id]);
+  const noConsent = winnable.filter((x) => !sent[x.c.id]).length - pool.length;
   const plan = pool.slice(0, size);
   const campaign = winnable.filter((x) => sent[x.c.id]);
   const returned = campaign.filter((x) => sent[x.c.id].returned);
@@ -40,7 +43,7 @@ export default function Winback() {
     return { back, revenue, cost: back * offer };
   }, [plan, offer]);
 
-  const body = JSON.stringify({ items: plan.map((x) => ({ id: x.c.id, name: x.c.name, usual: gapText(x.avgGap), lastSeen: Math.round(x.lastSeen), favourite: favourite(x.c.archetype), offer })) });
+  const body = JSON.stringify({ items: plan.map((x) => ({ id: x.c.id, ...llmPayload(x.c.name.split(" ")[0], gapText(x.avgGap), Math.round(x.lastSeen), favourite(x.c.archetype), offer) })) });
   // One call writes the whole plan; start it while the owner reviews, so "Run agent" is instant.
   useEffect(() => {
     if (plan.length) fetch("/api/messages", { method: "POST", body }).catch(() => {});
@@ -62,7 +65,7 @@ export default function Winback() {
     await wait(700);
     log("Delivering as Paytm app notifications");
     await wait(900);
-    markSent(plan.map((x) => x.c.id), offer);
+    markSent(plan.map((x) => x.c.id), offer, Object.fromEntries(plan.map((x) => [x.c.id, `P(regular) ${Math.round(x.pAlive * 100)}% (was ${Math.round(x.pAlive30 * 100)}%), ${Math.round(x.lastSeen)}d since last visit`])));
     log(`Sent. Watching the Soundbox for their next payment.`);
     await wait(400);
     setSteps((p) => p.map((x) => ({ ...x, state: "ok" })));
@@ -129,7 +132,7 @@ export default function Winback() {
             {plan.length === 0 && <p className={s.empty}>Everyone who&apos;s winnable already has an offer. Check results below.</p>}
           </div>
           <div className={s.runBar}>
-            <span className="t3">Return likelihood is an assumed response curve, not a trained model — it gets replaced by real redemption data after the first campaigns.</span>
+            <span className="t3">{noConsent > 0 && <><b>{noConsent} skipped</b> — not opted in to offers. </>}Return likelihood is an assumed response curve, not a trained model — it gets replaced by real redemption data after the first campaigns.</span>
             <button className="btn btn-primary" onClick={run} disabled={running || plan.length === 0}>{running ? <Loader2 size={14} className={s.spin} /> : <Send size={14} />}Run agent</button>
           </div>
         </div>

@@ -47,7 +47,7 @@ export default function Settings() {
       <div className="card" data-in>
         <div className="card-head"><div className="card-title">Privacy</div></div>
         <div className="card-body" style={{ fontSize: 13, color: "var(--text-2)", lineHeight: 1.6 }}>
-          Pehchaan only uses the payer name and UPI ID that already appear on your Paytm for Business statement. Offers reach customers as Paytm app notifications under Paytm&apos;s consent settings — you never see or store their phone numbers.
+          Pehchaan only uses the payer name and UPI ID that already appear on your Paytm for Business statement. Offers reach opted-in customers as Paytm app notifications — you never see or store their phone numbers. Consent, erasure and the audit log are in the Trust centre.
         </div>
       </div>
       <div className="card" data-in>
